@@ -1,6 +1,4 @@
 <?php
-// Example route handling for products
-
 include_once '../controllers/ProductController.php';
 
 $productController = new ProductController();
@@ -15,10 +13,9 @@ switch ($requestMethod) {
         $productController->create($data);
         break;
     case 'PUT':
-        // Ensure 'id' is an integer
+        $data = json_decode(file_get_contents("php://input"), true);
         $id = isset($_GET['id']) ? intval($_GET['id']) : null;
         if ($id !== null) {
-            $data = json_decode(file_get_contents("php://input"), true);
             $data['id'] = $id; // Assign integer id to data array
             $productController->update($data);
         } else {
@@ -26,7 +23,6 @@ switch ($requestMethod) {
         }
         break;
     case 'DELETE':
-        // Ensure 'id' is an integer
         $id = isset($_GET['id']) ? intval($_GET['id']) : null;
         if ($id !== null) {
             $productController->delete($id);

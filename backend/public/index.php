@@ -11,16 +11,12 @@ $debugResponse = array(
 );
 
 if (!empty($url_parts[0]) && $url_parts[0] === 'products') {
-    // Endpoint found
     $debugResponse["message"] = "Endpoint found: " . $url_parts[0];
     
-    // Buffer output to capture JSON responses
     ob_start();
     
-    // Include the routes file if endpoint found
     include_once '../routes/productRoutes.php';
     
-    // Capture output from included file
     $output = ob_get_clean();
     
     // Check if JSON response from included file

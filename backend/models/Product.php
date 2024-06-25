@@ -15,7 +15,10 @@ class Product {
         $this->conn = $db;
     }
 
-    // Create a product
+    public function getTableName() {
+        return $this->table_name;
+    }
+
     function create() {
         $query = "INSERT INTO " . $this->table_name . " SET name=:name, brand=:brand, description=:description, price=:price, discount_id=:discount_id, size_id=:size_id";
 
@@ -37,24 +40,27 @@ class Product {
         return false;
     }
 
-    // Read products
     function read() {
         $query = "SELECT * FROM " . $this->table_name;
-
+    
         $stmt = $this->conn->prepare($query);
-        $stmt->execute();
-
-        return $stmt;
+        if ($stmt->execute()) {
+            return $stmt;
+        } else {
+            $error = $stmt->errorInfo();
+            echo "Error executing query: " . $error[2];
+            return false;
+        }
     }
+    
 
-    // Update a product
     function update() {
         $query = "UPDATE " . $this->table_name . " SET name=:name, brand=:brand, description=:description, price=:price, discount_id=:discount_id, size_id=:size_id WHERE id=:id";
-
+    
         $stmt = $this->conn->prepare($query);
-
+    
         $this->sanitize();
-
+    
         $stmt->bindParam(":id", $this->id);
         $stmt->bindParam(":name", $this->name);
         $stmt->bindParam(":brand", $this->brand);
@@ -62,15 +68,21 @@ class Product {
         $stmt->bindParam(":price", $this->price);
         $stmt->bindParam(":discount_id", $this->discount_id);
         $stmt->bindParam(":size_id", $this->size_id);
-
+    
         if ($stmt->execute()) {
-            return true;
+            $rowCount = $stmt->rowCount();
+            if ($rowCount > 0) {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            $error = $stmt->errorInfo();
+            echo "Error executing query: " . $error[2];
+            return false;
         }
-
-        return false;
-    }
-
-    // Delete a product
+    }    
+    
     function delete() {
         $query = "DELETE FROM " . $this->table_name . " WHERE id=:id";
 
@@ -88,12 +100,13 @@ class Product {
     }
 
     private function sanitize() {
-        $this->name = htmlspecialchars(strip_tags($this->name));
-        $this->brand = htmlspecialchars(strip_tags($this->brand));
-        $this->description = htmlspecialchars(strip_tags($this->description));
-        $this->price = htmlspecialchars(strip_tags($this->price));
-        $this->discount_id = htmlspecialchars(strip_tags($this->discount_id));
-        $this->size_id = htmlspecialchars(strip_tags($this->size_id));
+        $this->id = isset($this->id) ? $this->id : null;
+        $this->name = isset($this->name) ? htmlspecialchars(strip_tags($this->name)) : null;
+        $this->brand = isset($this->brand) ? htmlspecialchars(strip_tags($this->brand)) : null;
+        $this->description = isset($this->description) ? htmlspecialchars(strip_tags($this->description)) : null;
+        $this->discount_id = isset($this->discount_id) ? htmlspecialchars(strip_tags($this->discount_id)) : null;
+        $this->size_id = isset($this->size_id) ? htmlspecialchars(strip_tags($this->size_id)) : null;
     }
+    
 }
 ?>
