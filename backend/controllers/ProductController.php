@@ -15,11 +15,18 @@ class ProductController {
     }
 
     public function index() {
+        echo "index() method called";
         $stmt = $this->product->read();
-        $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        $response = array("products" => $products);
-        $this->sendResponse($response);
+        if ($stmt !== null) {
+            $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $response = array("products" => $products);
+            $this->sendResponse($response);
+        } else {
+            $response = array("message" => "Error retrieving products");
+            $this->sendResponse($response, 500); // Internal Server Error
+        }
     }
+    
     
     public function create($data) {
         $validatedData = $this->validateProductData($data);
@@ -46,7 +53,6 @@ class ProductController {
     }
 
     public function update($data) {
-        // Validate input data
         $this->product->id = isset($data['id']) ? $data['id'] : null;
         $this->product->name = isset($data['name']) ? $data['name'] : null;
         $this->product->brand = isset($data['brand']) ? $data['brand'] : null;
@@ -55,14 +61,12 @@ class ProductController {
         $this->product->discount_id = isset($data['discount_id']) ? $data['discount_id'] : 0;
         $this->product->size_id = isset($data['size_id']) ? $data['size_id'] : 0;
     
-        // Check if any of the required fields are empty
         if (is_null($this->product->id) || is_null($this->product->name) || is_null($this->product->brand) || is_null($this->product->description) || is_null($this->product->price)) {
             $response = array("message" => "Required fields cannot be empty.");
-            $this->sendResponse($response, 400); // Bad Request
+            $this->sendResponse($response, 400);
             return;
         }
     
-        // Debug: Print the product data
         echo "Updating product with data: ";
         echo "<pre>";
         print_r($this->product);
@@ -70,10 +74,11 @@ class ProductController {
     
         if ($this->product->update()) {
             $response = array("message" => "Product updated.");
-            $this->sendResponse($response, 200); // OK
+            $this->sendResponse($response, 200); 
         } else {
             $response = array("message" => "Product could not be updated.");
-            $this->sendResponse($response, 500); // Internal Server Error
+            $errorMessage = "Product ID not found.";
+            $this->sendResponse($response, 404, $errorMessage);
         }
     }
     
@@ -93,25 +98,18 @@ class ProductController {
     private function validateProductData($data) {
         $validatedData = array();
     
-        // Validate name
         $validatedData['name'] = isset($data['name']) && is_string($data['name']) ? trim($data['name']) : null;
     
-        // Validate brand
         $validatedData['brand'] = isset($data['brand']) && is_string($data['brand']) ? trim($data['brand']) : null;
     
-        // Validate description
         $validatedData['description'] = isset($data['description']) && is_string($data['description']) ? trim($data['description']) : null;
     
-        // Validate price
         $validatedData['price'] = isset($data['price']) && is_numeric($data['price']) ? (float) $data['price'] : null;
     
-        // Validate discount_id
         $validatedData['discount_id'] = isset($data['discount_id']) && !empty($data['discount_id']) ? $data['discount_id'] : 0;
     
-        // Validate size_id
         $validatedData['size_id'] = isset($data['size_id']) && !empty($data['size_id']) ? $data['size_id'] : 0;
     
-        // Check if any of the required fields are empty or invalid
         if (is_null($validatedData['name']) || is_null($validatedData['brand']) || is_null($validatedData['description']) || is_null($validatedData['price'])) {
             return null;
         }
@@ -121,10 +119,12 @@ class ProductController {
     
     
 
-    private function sendResponse($response) {
-        header('Content-Type: application/json');
+    private function sendResponse($response, $statusCode = 200, $errorMessage = null) {
+        http_response_code($statusCode);
+        if ($errorMessage !== null) {
+            $response['error'] = $errorMessage;
+        }
         echo json_encode($response);
-        exit;
-    }
+    }    
 }
 ?>

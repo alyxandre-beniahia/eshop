@@ -1,7 +1,9 @@
 <?php
 include_once '../controllers/ProductController.php';
+include_once '../models/Product.php';
 
 $productController = new ProductController();
+echo "ProductController instantiated";
 $requestMethod = $_SERVER['REQUEST_METHOD'];
 
 switch ($requestMethod) {

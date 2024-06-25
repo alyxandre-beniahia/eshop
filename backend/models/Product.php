@@ -42,15 +42,10 @@ class Product {
 
     function read() {
         $query = "SELECT * FROM " . $this->table_name;
-    
         $stmt = $this->conn->prepare($query);
-        if ($stmt->execute()) {
-            return $stmt;
-        } else {
-            $error = $stmt->errorInfo();
-            echo "Error executing query: " . $error[2];
-            return false;
-        }
+        $stmt->execute();
+        echo "Data retrieved from database";
+        return $stmt;
     }
     
 
