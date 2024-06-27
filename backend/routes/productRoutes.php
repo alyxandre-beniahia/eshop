@@ -24,7 +24,7 @@ switch ($requestMethod) {
         $data = json_decode(file_get_contents("php://input"), true);
         $id = isset($_GET['id']) ? intval($_GET['id']) : null;
         if ($id !== null) {
-            $data['id'] = $id; // Assign integer id to data array
+            $data['id'] = $id; // C'est un peu caca mais j'ai fait comme ça
             $productController->update($data);
         } else {
             echo json_encode(array("message" => "Product ID not provided or invalid."));

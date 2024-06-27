@@ -7,18 +7,15 @@ class ProductController {
     private $db;
     private $product;
     private $stock;
-    private $id;
 
     public function __construct() {
         $database = new Database();
         $this->db = $database->getConnection();
         $this->product = new Product($this->db);
         $this->stock = new Stock($this->db);
-        $this->id = null;
     }
 
     public function index() {
-        echo "index() method called";
         $stmt = $this->product->read();
         if ($stmt !== null) {
             $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -26,7 +23,7 @@ class ProductController {
             $this->sendResponse($response);
         } else {
             $response = array("message" => "Error retrieving products");
-            $this->sendResponse($response, 500); // Internal Server Error
+            $this->sendResponse($response, 500);
         }
     }
     
