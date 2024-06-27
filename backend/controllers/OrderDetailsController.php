@@ -22,8 +22,6 @@ class OrderDetailsController {
         $this->orderDetailsModel->customer_id = $data['customer_id'];
         $this->orderDetailsModel->status = $data['status'];
         $this->orderDetailsModel->total = $data['total'];
-        $this->orderDetailsModel->created_at = date('Y-m-d H:i:s');
-        $this->orderDetailsModel->modified_at = date('Y-m-d H:i:s');
 
         if($this->orderDetailsModel->create()) {
             echo json_encode(array("message" => "Order details created successfully."));
@@ -42,8 +40,6 @@ class OrderDetailsController {
         $this->orderDetailsModel->customer_id = $data['customer_id'];
         $this->orderDetailsModel->status = $data['status'];
         $this->orderDetailsModel->total = $data['total'];
-        $this->orderDetailsModel->created_at = $data['created_at'];
-        $this->orderDetailsModel->modified_at = date('Y-m-d H:i:s');
 
         if($this->orderDetailsModel->update()) {
             echo json_encode(array("message" => "Order details updated successfully."));

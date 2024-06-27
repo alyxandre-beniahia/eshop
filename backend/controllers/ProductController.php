@@ -23,7 +23,7 @@ class ProductController {
             $this->sendResponse($response);
         } else {
             $response = array("message" => "Error retrieving products");
-            $this->sendResponse($response, 500); // Internal Server Error
+            $this->sendResponse($response, 500);
         }
     }
     
