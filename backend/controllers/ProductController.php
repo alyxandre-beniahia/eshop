@@ -27,7 +27,6 @@ class ProductController {
         }
     }
     
-    
     public function create($data) {
         $validatedData = $this->validateProductData($data);
     

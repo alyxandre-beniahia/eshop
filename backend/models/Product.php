@@ -102,6 +102,6 @@ class Product {
         $this->discount_id = isset($this->discount_id) ? htmlspecialchars(strip_tags($this->discount_id)) : null;
         $this->size_id = isset($this->size_id) ? htmlspecialchars(strip_tags($this->size_id)) : null;
     }
-    
+
 }
 ?>
