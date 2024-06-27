@@ -21,24 +21,43 @@ class Product {
 
     function create() {
         $query = "INSERT INTO " . $this->table_name . " SET name=:name, brand=:brand, description=:description, price=:price, discount_id=:discount_id, size_id=:size_id";
-
+    
         $stmt = $this->conn->prepare($query);
-
+    
         $this->sanitize();
-
+    
         $stmt->bindParam(":name", $this->name);
         $stmt->bindParam(":brand", $this->brand);
         $stmt->bindParam(":description", $this->description);
         $stmt->bindParam(":price", $this->price);
         $stmt->bindParam(":discount_id", $this->discount_id);
         $stmt->bindParam(":size_id", $this->size_id);
-
+    
         if ($stmt->execute()) {
             return true;
         }
-
+    
         return false;
     }
+    
+    function readById() {
+        $query = "SELECT p.*, d.discount_percent,
+                         IF(d.discount_percent IS NULL, p.price, p.price * (1 - d.discount_percent / 100)) AS discounted_price
+                  FROM " . $this->table_name . " p
+                  LEFT JOIN discounts d ON p.discount_id = d.id
+                  WHERE p.id = :id";
+    
+        $stmt = $this->conn->prepare($query);
+        $this->id = htmlspecialchars(strip_tags($this->id));
+        $stmt->bindParam(":id", $this->id);
+    
+        if ($stmt->execute()) {
+            return $stmt;
+        }
+    
+        return null;
+    }
+    
 
     function read() {
         $query = "SELECT * FROM " . $this->table_name;
@@ -101,6 +120,20 @@ class Product {
         $this->description = isset($this->description) ? htmlspecialchars(strip_tags($this->description)) : null;
         $this->discount_id = isset($this->discount_id) ? htmlspecialchars(strip_tags($this->discount_id)) : null;
         $this->size_id = isset($this->size_id) ? htmlspecialchars(strip_tags($this->size_id)) : null;
+    }
+
+    function getStock() {
+        $query = "SELECT s.id, s.quantity, sz.name as size_name
+                  FROM " . $this->table_name . " p
+                  JOIN Stock s ON p.id = s.product_id
+                  JOIN Sizes sz ON s.size_id = sz.id
+                  WHERE p.id = :product_id";
+    
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":product_id", $this->id);
+        $stmt->execute();
+    
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
     
 }

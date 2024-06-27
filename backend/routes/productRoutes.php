@@ -8,7 +8,13 @@ $requestMethod = $_SERVER['REQUEST_METHOD'];
 
 switch ($requestMethod) {
     case 'GET':
-        $productController->index();
+        // Check if an ID is provided
+        $id = isset($_GET['id']) ? intval($_GET['id']) : null;
+        if ($id !== null) {
+            $productController->getById($id);
+        } else {
+            $productController->index();
+        }
         break;
     case 'POST':
         $data = json_decode(file_get_contents("php://input"), true);

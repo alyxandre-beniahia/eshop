@@ -1,16 +1,19 @@
 <?php
 include_once '../config/db.php';
 include_once '../models/Product.php';
+include_once '../models/Stock.php';
 
 class ProductController {
     private $db;
     private $product;
+    private $stock;
     private $id;
 
     public function __construct() {
         $database = new Database();
         $this->db = $database->getConnection();
         $this->product = new Product($this->db);
+        $this->stock = new Stock($this->db);
         $this->id = null;
     }
 
@@ -27,7 +30,26 @@ class ProductController {
         }
     }
     
+    public function getById($id) {
+        $this->product->id = $id;
+        $stmt = $this->product->readById();
     
+        if ($stmt !== null) {
+            $product = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($product) {
+                $response = array("product" => $product);
+                $this->sendResponse($response);
+            } else {
+                $response = array("message" => "Product not found.");
+                $this->sendResponse($response, 404);
+            }
+        } else {
+            $response = array("message" => "Error retrieving product.");
+            $this->sendResponse($response, 500);
+        }
+    }
+    
+
     public function create($data) {
         $validatedData = $this->validateProductData($data);
     
@@ -45,12 +67,24 @@ class ProductController {
         $this->product->size_id = $validatedData['size_id'];
     
         if ($this->product->create()) {
+            $productId = $this->db->lastInsertId();
+    
+            // Insert stock quantity for the specified size
+            $sizeId = $this->product->size_id;
+            $quantity = isset($data['quantity']) ? $data['quantity'] : 0;
+            $this->insertProductStock($productId, $sizeId, $quantity);
+    
             $response = array("message" => "Product created.");
         } else {
             $response = array("message" => "Product could not be created.");
         }
         $this->sendResponse($response);
     }
+    
+    private function insertProductStock($productId, $sizeId, $quantity) {
+        $this->stock->insertProductStock($productId, $sizeId, $quantity);
+    }
+    
 
     public function update($data) {
         $this->product->id = isset($data['id']) ? $data['id'] : null;
@@ -60,25 +94,37 @@ class ProductController {
         $this->product->price = isset($data['price']) ? $data['price'] : null;
         $this->product->discount_id = isset($data['discount_id']) ? $data['discount_id'] : 0;
         $this->product->size_id = isset($data['size_id']) ? $data['size_id'] : 0;
-    
+
         if (is_null($this->product->id) || is_null($this->product->name) || is_null($this->product->brand) || is_null($this->product->description) || is_null($this->product->price)) {
             $response = array("message" => "Required fields cannot be empty.");
             $this->sendResponse($response, 400);
             return;
         }
-    
-        echo "Updating product with data: ";
-        echo "<pre>";
-        print_r($this->product);
-        echo "</pre>";
-    
+
         if ($this->product->update()) {
+            // Update stock quantity for the specified size
+            $sizeId = $this->product->size_id;
+            $quantity = isset($data['quantity']) ? $data['quantity'] : 0;
+            $this->updateProductStock($this->product->id, $sizeId, $quantity);
+
             $response = array("message" => "Product updated.");
-            $this->sendResponse($response, 200); 
+            $this->sendResponse($response, 200);
         } else {
             $response = array("message" => "Product could not be updated.");
             $errorMessage = "Product ID not found.";
             $this->sendResponse($response, 404, $errorMessage);
+        }
+    }
+
+    private function updateProductStock($productId, $sizeId, $quantity) {
+        $existingStock = $this->stock->readBySize($sizeId);
+
+        if ($existingStock) {
+            // Update existing stock quantity
+            $this->stock->updateProductStock($productId, $sizeId, $quantity);
+        } else {
+            // Insert new stock entry
+            $this->stock->insertProductStock($productId, $sizeId, $quantity);
         }
     }
     
@@ -110,12 +156,15 @@ class ProductController {
     
         $validatedData['size_id'] = isset($data['size_id']) && !empty($data['size_id']) ? $data['size_id'] : 0;
     
+        $validatedData['quantity'] = isset($data['quantity']) && is_numeric($data['quantity']) ? (int) $data['quantity'] : 0;
+    
         if (is_null($validatedData['name']) || is_null($validatedData['brand']) || is_null($validatedData['description']) || is_null($validatedData['price'])) {
             return null;
         }
     
         return $validatedData;
     }
+    
     
     
 
@@ -126,5 +175,6 @@ class ProductController {
         }
         echo json_encode($response);
     }    
+
 }
 ?>
