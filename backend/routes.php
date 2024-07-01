@@ -1,4 +1,5 @@
 <?php
+include_once __DIR__. '/../middleware/auth.php';
 class Router
 {
     private $routes = [];
@@ -28,6 +29,45 @@ class Router
 }
 
 $router = new Router();
+
+// Users routes
+$router->define('GET', '/users', function() {
+    $userData = authenticateRequest();
+    if ($userData) {
+        ob_start();
+        include_once 'routes/userRoutes.php';
+        $output = ob_get_clean();
+
+        $json_response = json_decode($output, true);
+        if ($json_response !== null) {
+            echo json_encode($json_response);
+        } else {
+            echo json_encode(array("message" => "Invalid JSON response"));
+        }
+    }
+});
+
+
+$router->define('POST', '/users', function() {
+    include_once 'routes/userRoutes.php';
+});
+
+$router->define('PUT', '/users', function() {
+    $userData = authenticateRequest();
+    if ($userData) {
+        include_once 'routes/userRoutes.php';
+    }
+});
+$router->define('DELETE', '/users', function() {
+    $userData = authenticateRequest();
+    if ($userData) {
+        include_once 'routes/userRoutes.php';
+    }
+});
+
+$router->define('POST', '/login', function() {
+    include_once 'routes/userRoutes.php';
+});
 
 // Products routes
 $router->define('GET', '/products', function() {
@@ -88,6 +128,7 @@ $router->define('PUT', '/discounts', function() {
 $router->define('DELETE', '/discounts', function() {
     include_once 'routes/discountRoutes.php';
 });
+
 // $router->define('GET', '/orders', function() {
 //     // ... (handle /orders route)
 // });
