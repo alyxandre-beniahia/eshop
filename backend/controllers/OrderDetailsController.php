@@ -1,5 +1,5 @@
 <?php
-include_once '../models/OrderDetails.php';
+include_once '../models/Order_details.php';
 
 class OrderDetailsController {
     private $orderDetailsModel;

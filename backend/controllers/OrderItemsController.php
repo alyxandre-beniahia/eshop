@@ -1,4 +1,6 @@
 <?php
+include_once '../models/Order_items.php';
+
 class OrderItemsController {
     private $conn;
     private $orderItems;
@@ -18,8 +20,6 @@ class OrderItemsController {
         $this->orderItems->order_id = $_POST['order_id'];
         $this->orderItems->product_id = $_POST['product_id'];
         $this->orderItems->quantity = $_POST['quantity'];
-        $this->orderItems->created_at = date('Y-m-d H:i:s');
-        $this->orderItems->modified_at = date('Y-m-d H:i:s');
 
         if($this->orderItems->create()) {
             echo "Order item created successfully.";
@@ -39,8 +39,6 @@ class OrderItemsController {
         $this->orderItems->order_id = $_POST['order_id'];
         $this->orderItems->product_id = $_POST['product_id'];
         $this->orderItems->quantity = $_POST['quantity'];
-        $this->orderItems->created_at = $_POST['created_at'];
-        $this->orderItems->modified_at = date('Y-m-d H:i:s');
 
         if($this->orderItems->update()) {
             echo "Order item updated successfully.";

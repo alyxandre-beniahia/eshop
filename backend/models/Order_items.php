@@ -1,14 +1,12 @@
 <?php
 class OrderItems {
     private $conn;
-    private $table_name = "order_items";
+    private $table_name = "ORDER_ITEMS";
 
     public $id;
     public $order_id;
     public $product_id;
     public $quantity;
-    public $created_at;
-    public $modified_at;
 
     public function __construct($db) {
         $this->conn = $db;
@@ -28,8 +26,6 @@ class OrderItems {
         $stmt->bindParam(":order_id", $this->order_id);
         $stmt->bindParam(":product_id", $this->product_id);
         $stmt->bindParam(":quantity", $this->quantity);
-        $stmt->bindParam(":created_at", $this->created_at);
-        $stmt->bindParam(":modified_at", $this->modified_at);
 
         if ($stmt->execute()) {
             return true;
@@ -57,8 +53,6 @@ class OrderItems {
         $stmt->bindParam(":order_id", $this->order_id);
         $stmt->bindParam(":product_id", $this->product_id);
         $stmt->bindParam(":quantity", $this->quantity);
-        $stmt->bindParam(":created_at", $this->created_at);
-        $stmt->bindParam(":modified_at", $this->modified_at);
 
         if ($stmt->execute()) {
             $rowCount = $stmt->rowCount();
@@ -95,8 +89,6 @@ class OrderItems {
         $this->order_id = isset($this->order_id) ? htmlspecialchars(strip_tags($this->order_id)) : null;
         $this->product_id = isset($this->product_id) ? htmlspecialchars(strip_tags($this->product_id)) : null;
         $this->quantity = isset($this->quantity) ? htmlspecialchars(strip_tags($this->quantity)) : null;
-        $this->created_at = isset($this->created_at) ? htmlspecialchars(strip_tags($this->created_at)) : null;
-        $this->modified_at = isset($this->modified_at) ? htmlspecialchars(strip_tags($this->modified_at)) : null;
     }
 
     function getOrderDetails() {

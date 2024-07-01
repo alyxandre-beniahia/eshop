@@ -1,7 +1,7 @@
 <?php
 class OrderDetails {
     private $conn;
-    private $table_name = "order_details";
+    private $table_name = "ORDER_DETAILS";
     public $id;
     public $customer_id;
     public $status;
