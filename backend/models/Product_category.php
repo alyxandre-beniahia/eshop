@@ -15,21 +15,21 @@ class ProductCategory {
     }
 
     function create() {
-        $query = "INSERT INTO " . $this->table_name . " SET name=:name, description=:description, created_at=:created_at, updated_at=:updated_at";
-
+        $query = "INSERT INTO " . $this->table_name . " SET name=:name, description=:description, created_at=NOW(), updated_at=NOW()";
+    
         $stmt = $this->conn->prepare($query);
-
+    
         $this->sanitize();
-
+    
         $stmt->bindParam(":name", $this->name);
         $stmt->bindParam(":description", $this->description);
-
+    
         if ($stmt->execute()) {
             return true;
         }
-
+    
         return false;
-    }
+    }    
 
     function read() {
         $query = "SELECT * FROM " . $this->table_name;
@@ -39,16 +39,16 @@ class ProductCategory {
     }
 
     function update() {
-        $query = "UPDATE " . $this->table_name . " SET name=:name, description=:description, created_at=:created_at, updated_at=:updated_at WHERE id=:id";
-
+        $query = "UPDATE " . $this->table_name . " SET name=:name, description=:description, updated_at=NOW() WHERE id=:id";
+    
         $stmt = $this->conn->prepare($query);
-
+    
         $this->sanitize();
-
+    
         $stmt->bindParam(":id", $this->id);
         $stmt->bindParam(":name", $this->name);
         $stmt->bindParam(":description", $this->description);
-
+    
         if ($stmt->execute()) {
             $rowCount = $stmt->rowCount();
             if ($rowCount > 0) {
@@ -62,6 +62,7 @@ class ProductCategory {
             return false;
         }
     }
+    
 
     function delete() {
         $query = "DELETE FROM " . $this->table_name . " WHERE id=:id";

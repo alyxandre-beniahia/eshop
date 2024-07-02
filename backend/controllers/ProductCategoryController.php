@@ -1,6 +1,6 @@
 <?php
 include_once '../config/db.php';
-include_once '../models/ProductCategory.php';
+include_once '../models/Product_category.php';
 
 class ProductCategoryController {
     private $db;
@@ -37,8 +37,8 @@ class ProductCategoryController {
         }
     }
 
-    public function update($data) {
-        $this->productCategory->id = $data['id'];
+    public function update($data, $id) {
+        $this->productCategory->id = $id;
         $this->productCategory->name = $data['name'];
         $this->productCategory->description = $data['description'];
 

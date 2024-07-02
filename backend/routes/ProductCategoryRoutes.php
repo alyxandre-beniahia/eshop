@@ -21,8 +21,7 @@ switch ($requestMethod) {
         $data = json_decode(file_get_contents("php://input"), true);
         $id = isset($_GET['id']) ? intval($_GET['id']) : null;
         if ($id !== null) {
-            $data['id'] = $id;
-            $productCategoryController->update($data);
+            $productCategoryController->update($data, $id);
         } else {
             echo json_encode(array("message" => "Category ID not provided or invalid."));
         }

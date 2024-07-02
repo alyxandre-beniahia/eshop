@@ -89,11 +89,6 @@ $router->define('GET', '/products', function() {
     }
 });
 
-// ________________ Products routes ________________
-$router->define('GET', '/products', function() {
-    handleJsonResponse('routes/productRoutes.php');
-});
-
 $router->define('POST', '/products', function() {
     include_once 'routes/productRoutes.php';
 });
@@ -123,13 +118,23 @@ $router->define('PUT', '/discounts', function() {
 $router->define('DELETE', '/discounts', function() {
     include_once 'routes/discountRoutes.php';
 });
-// $router->define('GET', '/orders', function() {
-//     // ... (handle /orders route)
-// });
 
 // ________________ ProductCategory routes ________________
 $router->define('GET', '/categories', function() {
-    handleJsonResponse('routes/productCategoryRoutes.php');
+    ob_start();
+    include_once $routeFile;
+    $output = ob_get_clean();
+    $json_start = strpos($output, '{');
+    if ($json_start !== false) {
+        $json_response = json_decode(substr($output, $json_start), true);
+        if ($json_response) {
+            echo json_encode($json_response);
+        } else {
+            echo json_encode(array("message" => "Invalid JSON response"));
+        }
+    } else {
+        echo json_encode(array("message" => "No JSON response found"));
+    }
 });
 
 $router->define('POST', '/categories', function() {

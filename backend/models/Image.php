@@ -1,7 +1,7 @@
 <?php
 class ProductImages {
     private $conn;
-    private $table_name = "IMAGE";
+    private $table_name = "product_images";
 
     public $id;
     public $product_id;
