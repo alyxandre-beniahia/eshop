@@ -1,7 +1,7 @@
 <?php
 include_once '../config/db.php';
 include_once '../models/User.php';
-include_once __DIR__ . '/../middleware/auth.php';
+include_once '../middleware/auth.php';
 
 class UserController {
     private $db;
@@ -73,12 +73,11 @@ class UserController {
             return;
         }
     
-        
         $user = $this->user->getUserByEmail($email);
         if ($user && password_verify($password, $user['password'])) {
             $userId = $user['id'];
             $userRole = $user['role'];
-            $secret_key = "secret";
+            $secret_key = "betterstackedthensticked"; // Define the secret key here
             $jwt = generateJWT($userId, $userRole, $secret_key);
     
             echo json_encode(array("token" => $jwt));

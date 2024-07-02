@@ -3,8 +3,6 @@ require_once '../vendor/autoload.php';
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
-$secret_key = "betterstackedthensticked";
-
 function generateJWT($userId, $userRole, $secret_key) {
     $payload = array(
         "iat" => time(),
@@ -20,8 +18,7 @@ function generateJWT($userId, $userRole, $secret_key) {
     return $jwt;
 }
 
-function verifyJWT($jwt) {
-    global $secret_key;
+function verifyJWT($jwt, $secret_key) {
     try {
         $decoded = JWT::decode($jwt, new Key($secret_key, 'HS256'));
         return $decoded->data;
@@ -30,13 +27,13 @@ function verifyJWT($jwt) {
     }
 }
 
-function authenticateRequest() {
+function authenticateRequest($secret_key) {
     $headers = apache_request_headers();
     if (isset($headers['Authorization'])) {
         $jwt = trim(str_replace('Bearer ', '', $headers['Authorization']));
-        $userData = verifyJWT($jwt);
+        $userData = verifyJWT($jwt, $secret_key);
         if ($userData) {
-            return $userData;
+            return (array) $userData; // Cast $userData to an array
         }
     }
     http_response_code(401);

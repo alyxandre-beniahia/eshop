@@ -1,5 +1,6 @@
 <?php
-include_once __DIR__. '/../middleware/auth.php';
+include_once 'middleware/auth.php';
+
 class Router
 {
     private $routes = [];
@@ -32,7 +33,8 @@ $router = new Router();
 
 // Users routes
 $router->define('GET', '/users', function() {
-    $userData = authenticateRequest();
+    $secret_key = "secret";
+    $userData = authenticateRequest($secret_key);
     if ($userData) {
         ob_start();
         include_once 'routes/userRoutes.php';
