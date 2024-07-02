@@ -1,7 +1,7 @@
 <?php
 class UserDeliveryInfo {
     private $conn;
-    private $table_name = "USER_DELIVERY_INFO";
+    private $table_name = "user_delivery_info";
     public $id;
     public $address_line1;
     public $address_line2;

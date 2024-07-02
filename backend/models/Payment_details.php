@@ -1,7 +1,7 @@
 <?php
 class PaymentDetails {
     private $conn;
-    private $table_name = "PAYMENT_DETAIL";
+    private $table_name = "payment_details";
     public $id;
     public $amount;
     public $status;

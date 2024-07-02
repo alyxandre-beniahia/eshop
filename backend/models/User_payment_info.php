@@ -1,7 +1,7 @@
 <?php
 class UserPaymentInfo {
     private $conn;
-    private $table_name = "USER_PAYMENT_INFO";
+    private $table_name = "user_payment_info";
     public $id;
     public $credit_card_number;
     public $cryptogram;

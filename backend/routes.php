@@ -53,13 +53,15 @@ $router->define('POST', '/users', function() {
 });
 
 $router->define('PUT', '/users', function() {
-    $userData = authenticateRequest();
+    $secret_key = "secret";
+    $userData = authenticateRequest($secret_key);
     if ($userData) {
         include_once 'routes/userRoutes.php';
     }
 });
 $router->define('DELETE', '/users', function() {
-    $userData = authenticateRequest();
+    $secret_key = "secret";
+    $userData = authenticateRequest($secret_key);
     if ($userData) {
         include_once 'routes/userRoutes.php';
     }

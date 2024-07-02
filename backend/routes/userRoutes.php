@@ -22,7 +22,10 @@ switch ($requestMethod) {
         }
         break;
     case 'PUT':
-        $userController->update($data);
+        $id = isset($_GET['id']) ? intval($_GET['id']) : null;
+        if ($id !== null){
+            $userController->update($data, $id);
+        }
         break;
     case 'DELETE':
         $id = isset($_GET['id']) ? intval($_GET['id']) : null;

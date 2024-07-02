@@ -36,8 +36,8 @@ class UserController {
         }
     }
 
-    public function update($data) {
-        $this->user->id = $data['id'];
+    public function update($data, $id) {
+        $this->user->id = $id;
         $this->user->username = $data['username'];
         $this->user->email = $data['email'];
         $this->user->password = $data['password'];
@@ -77,7 +77,7 @@ class UserController {
         if ($user && password_verify($password, $user['password'])) {
             $userId = $user['id'];
             $userRole = $user['role'];
-            $secret_key = "betterstackedthensticked"; // Define the secret key here
+            $secret_key = "secret"; // Define the secret key here
             $jwt = generateJWT($userId, $userRole, $secret_key);
     
             echo json_encode(array("token" => $jwt));

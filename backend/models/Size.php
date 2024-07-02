@@ -1,7 +1,7 @@
 <?php
 class Size {
     private $conn;
-    private $table_name = "Sizes";
+    private $table_name = "sizes";
 
     public $id;
     public $name;

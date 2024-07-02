@@ -1,7 +1,7 @@
 <?php
 class Stock {
     private $conn;
-    private $table_name = "Stock";
+    private $table_name = "stock";
 
     public $id;
     public $product_id;
