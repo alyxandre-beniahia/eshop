@@ -2,19 +2,23 @@
 include_once '../config/db.php';
 include_once '../models/Product.php';
 include_once '../models/Stock.php';
+include_once '../models/ProductImages.php';
 
 class ProductController {
     private $db;
     private $product;
     private $stock;
+    private $productImages;
 
     public function __construct() {
         $database = new Database();
         $this->db = $database->getConnection();
         $this->product = new Product($this->db);
         $this->stock = new Stock($this->db);
+        $this->productImages = new ProductImages($this->db);
     }
 
+    // get all products
     public function index() {
         $stmt = $this->product->read();
         if ($stmt !== null) {
@@ -26,7 +30,8 @@ class ProductController {
             $this->sendResponse($response, 500);
         }
     }
-    
+
+    // get specific product by id    
     public function getById($id) {
         $this->product->id = $id;
         $stmt = $this->product->readById();
@@ -46,7 +51,7 @@ class ProductController {
         }
     }
     
-
+    // create new product
     public function create($data) {
         $validatedData = $this->validateProductData($data);
     
@@ -66,20 +71,19 @@ class ProductController {
         if ($this->product->create()) {
             $productId = $this->db->lastInsertId();
     
-            // Insert stock quantity for the specified size
+            // stock handling
             $sizeId = $this->product->size_id;
             $quantity = isset($data['quantity']) ? $data['quantity'] : 0;
-            $this->insertProductStock($productId, $sizeId, $quantity);
+            $this->stock->insertProductStock($productId, $sizeId, $quantity);
     
+            // product images handling
+            $this->handleProductImages($productId, $data['images']);
+
             $response = array("message" => "Product created.");
         } else {
             $response = array("message" => "Product could not be created.");
         }
         $this->sendResponse($response);
-    }
-    
-    private function insertProductStock($productId, $sizeId, $quantity) {
-        $this->stock->insertProductStock($productId, $sizeId, $quantity);
     }
     
 
@@ -103,6 +107,9 @@ class ProductController {
             $sizeId = $this->product->size_id;
             $quantity = isset($data['quantity']) ? $data['quantity'] : 0;
             $this->updateProductStock($this->product->id, $sizeId, $quantity);
+            
+            // Update product images
+            $this->handleProductImages($this->product->id, $data['images']);
 
             $response = array("message" => "Product updated.");
             $this->sendResponse($response, 200);
@@ -136,6 +143,32 @@ class ProductController {
         }
     
         $this->sendResponse($response);
+    }
+
+    private function handleProductImages($productId, $images) {
+        if (!empty($images)) {
+            // Delete existing images for the product
+            $this->deleteProductImages($productId);
+
+            // Insert new images
+            foreach ($images as $image) {
+                $this->productImages->product_id = $productId;
+                $this->productImages->image_path = $image['path'];
+                $this->productImages->is_primary = $image['is_primary'];
+                $this->productImages->create();
+            }
+        }
+    }
+
+    private function deleteProductImages($productId) {
+        $this->productImages->product_id = $productId;
+        $stmt = $this->productImages->read();
+        $images = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        foreach ($images as $image) {
+            $this->productImages->id = $image['id'];
+            $this->productImages->delete();
+        }
     }
     
     private function validateProductData($data) {

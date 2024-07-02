@@ -85,10 +85,7 @@ $router->define('GET', '/products', function() {
     } else {
         echo json_encode(array("message" => "No JSON response found"));
     }
-}
-
-$router = new Router();
-
+});
 
 // ________________ Products routes ________________
 $router->define('GET', '/products', function() {
