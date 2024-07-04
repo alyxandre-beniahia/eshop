@@ -29,7 +29,8 @@ class Router
 
 $router = new Router();
 
-// Users routes
+// Users routes Tested OK
+// http://localhost:8000/users
 $router->define('GET', '/users', function() {
     $secret_key = "secret";
     $userData = authenticateRequest($secret_key);
@@ -71,11 +72,28 @@ $router->define('POST', '/login', function() {
     include_once 'routes/userRoutes.php';
 });
 
-// Products routes
+// Products routes tested OK
+// http://localhost:8000/products
+// object type to post to the server
+//{
+//    "name":"chemise rouge",
+//    "brand":"Givenchy",
+//    "description":"Chemise à manche longue rouge sang",
+//    "price":500,
+//    "discount_id":1,
+//    "size_id":6,
+//    "quantity":10,
+//    "images":"https://images.pexels.com/photos/1103899/pexels-photo-1103899.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940"
+// }
+// to get the categories of a product http://localhost:8000/products?categories&id=4
+//
+//
+
 $router->define('GET', '/products', function() {
     ob_start();
-    include_once $routeFile;
+    include_once 'routes/productRoutes.php';
     $output = ob_get_clean();
+
     $json_start = strpos($output, '{');
     if ($json_start !== false) {
         $json_response = json_decode(substr($output, $json_start), true);
@@ -88,6 +106,8 @@ $router->define('GET', '/products', function() {
         echo json_encode(array("message" => "No JSON response found"));
     }
 });
+
+
 
 $router->define('POST', '/products', function() {
     include_once 'routes/productRoutes.php';
@@ -119,10 +139,12 @@ $router->define('DELETE', '/discounts', function() {
     include_once 'routes/discountRoutes.php';
 });
 
-// ________________ ProductCategory routes ________________
+// ProductCategory routes Tested OK
+// http://localhost:8000/categories?products&id=2 to get all products of category 2
+// object type to post to the server {"name":"Pantalons","description":"Tous les pantalons"}
 $router->define('GET', '/categories', function() {
     ob_start();
-    include_once $routeFile;
+    include_once 'routes/productCategoryRoutes.php';
     $output = ob_get_clean();
     $json_start = strpos($output, '{');
     if ($json_start !== false) {

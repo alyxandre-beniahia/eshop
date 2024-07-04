@@ -13,18 +13,31 @@ class ProductCategoryController {
     }
 
     public function index() {
-        $categories = $this->productCategory->read();
-        echo json_encode($categories);
+        $stmt = $this->productCategory->read();
+        if ($stmt !== null) {
+            $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $response = array("products" => $products);
+            $this->sendResponse($response);
+        } else {
+            $response = array("message" => "Error retrieving products");
+            $this->sendResponse($response, 500);
+        }
     }
+    
 
     public function getById($id) {
         $category = $this->productCategory->getById($id);
         if ($category) {
-            echo json_encode($category);
+            try {
+                echo json_encode($category);
+            } catch (Exception $e) {
+                echo json_encode(array("message" => "Error encoding category data as JSON."));
+            }
         } else {
             echo json_encode(array("message" => "Category not found."));
         }
     }
+    
 
     public function create($data) {
         $this->productCategory->name = $data['name'];
@@ -56,6 +69,50 @@ class ProductCategoryController {
         } else {
             echo json_encode(array("message" => "Category could not be deleted."));
         }
+    }
+
+    public function addProduct($categoryId, $productId) {
+        $this->productCategory->id = $categoryId;
+        if ($this->productCategory->addProduct($productId)) {
+            echo json_encode(array("message" => "Product added to category successfully."));
+        } else {
+            echo json_encode(array("message" => "Failed to add product to category."));
+        }
+    }
+
+    public function getProductsByCategory($categoryId) {
+        $this->productCategory->id = $categoryId;
+        $stmt = $this->productCategory->getProducts();
+        $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        if ($products) {
+            try {
+                $response = array("products" => $products);
+                $this->sendResponse($response);
+            } catch (Exception $e) {
+                $response = array("message" => "Error encoding products as JSON.");
+                echo json_encode($response);
+            }
+        } else {
+            echo json_encode(array("message" => "No products found for this category."));
+        }
+    }    
+    
+
+    public function updateProducts($productIds) {
+        $this->productCategory->id = $_GET['id'];
+        $this->productCategory->removeAllProducts();
+        foreach ($productIds as $productId) {
+            $this->productCategory->addProduct($productId);
+        }
+        echo json_encode(array("message" => "Category products updated successfully."));
+    }
+
+    private function sendResponse($response, $statusCode = 200, $errorMessage = null) {
+        http_response_code($statusCode);
+        if ($errorMessage !== null) {
+            $response['error'] = $errorMessage;
+        }
+        echo json_encode($response);
     }
 }
 ?>

@@ -3,29 +3,38 @@ include_once '../controllers/ProductController.php';
 include_once '../models/Product.php';
 
 $productController = new ProductController();
-echo "ProductController instantiated";
 $requestMethod = $_SERVER['REQUEST_METHOD'];
 
 switch ($requestMethod) {
     case 'GET':
-        // Check if an ID is provided
         $id = isset($_GET['id']) ? intval($_GET['id']) : null;
         if ($id !== null) {
-            $productController->getById($id);
+            if (isset($_GET['categories'])) {
+                $productController->getCategories($id);
+            } else {
+                $productController->getById($id);
+            }
         } else {
             $productController->index();
         }
-        break;
+        break;    
     case 'POST':
         $data = json_decode(file_get_contents("php://input"), true);
-        $productController->create($data);
-        break;
+        if (isset($data['product_id']) && isset($data['category_id'])) {
+            $productController->addCategory($data['category_id'], $data['product_id']);
+        } else {
+            echo json_encode(array("message" => "Product ID and Category ID are required."));
+        }
+        break;        
     case 'PUT':
         $data = json_decode(file_get_contents("php://input"), true);
         $id = isset($_GET['id']) ? intval($_GET['id']) : null;
         if ($id !== null) {
-            $data['id'] = $id; // C'est un peu caca mais j'ai fait comme ça
+            $data['id'] = $id;
             $productController->update($data);
+            if (isset($data['category_ids']) && is_array($data['category_ids'])) {
+                $productController->updateCategories($data['category_ids']);
+            }
         } else {
             echo json_encode(array("message" => "Product ID not provided or invalid."));
         }

@@ -1,9 +1,9 @@
 <?php
 class OrderDetails {
     private $conn;
-    private $table_name = "ORDER_DETAILS";
+    private $table_name = "order_details";
     public $id;
-    public $customer_id;
+    public $user_id;
     public $status;
     public $total;
 
@@ -16,13 +16,13 @@ class OrderDetails {
     }
 
     function create() {
-        $query = "INSERT INTO " . $this->table_name . " SET customer_id=:customer_id, status=:status, total=:total, created_at=:created_at, modified_at=:modified_at";
+        $query = "INSERT INTO " . $this->table_name . " SET user_id=:user_id, status=:status, total=:total, created_at=:NOW(), modified_at=:NOW()";
 
         $stmt = $this->conn->prepare($query);
 
         $this->sanitize();
 
-        $stmt->bindParam(":customer_id", $this->customer_id);
+        $stmt->bindParam(":user_id", $this->user_id);
         $stmt->bindParam(":status", $this->status);
         $stmt->bindParam(":total", $this->total);
 
@@ -41,14 +41,14 @@ class OrderDetails {
     }
 
     function update() {
-        $query = "UPDATE " . $this->table_name . " SET customer_id=:customer_id, status=:status, total=:total, created_at=:created_at, modified_at=:modified_at WHERE id=:id";
+        $query = "UPDATE " . $this->table_name . " SET user_id=:user_id, status=:status, total=:total, modified_at=:NOW() WHERE id=:id";
 
         $stmt = $this->conn->prepare($query);
 
         $this->sanitize();
 
         $stmt->bindParam(":id", $this->id);
-        $stmt->bindParam(":customer_id", $this->customer_id);
+        $stmt->bindParam(":user_id", $this->user_id);
         $stmt->bindParam(":status", $this->status);
         $stmt->bindParam(":total", $this->total);
 
@@ -84,7 +84,7 @@ class OrderDetails {
 
     private function sanitize() {
         $this->id = isset($this->id) ? $this->id : null;
-        $this->customer_id = isset($this->customer_id) ? htmlspecialchars(strip_tags($this->customer_id)) : null;
+        $this->user_id = isset($this->user_id) ? htmlspecialchars(strip_tags($this->user_id)) : null;
         $this->status = isset($this->status) ? htmlspecialchars(strip_tags($this->status)) : null;
         $this->total = isset($this->total) ? htmlspecialchars(strip_tags($this->total)) : null;
     }

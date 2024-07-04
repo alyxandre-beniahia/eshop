@@ -2,12 +2,14 @@
 include_once '../config/db.php';
 include_once '../models/Product.php';
 include_once '../models/Stock.php';
-include_once '../models/ProductImages.php';
+include_once '../models/Image.php';
+include_once '../models/Product_category.php';
 
 class ProductController {
     private $db;
     private $product;
     private $stock;
+    private $category;
     private $productImages;
 
     public function __construct() {
@@ -15,6 +17,7 @@ class ProductController {
         $this->db = $database->getConnection();
         $this->product = new Product($this->db);
         $this->stock = new Stock($this->db);
+        $this->category = new ProductCategory($this->db);
         $this->productImages = new ProductImages($this->db);
     }
 
@@ -29,7 +32,8 @@ class ProductController {
             $response = array("message" => "Error retrieving products");
             $this->sendResponse($response, 500);
         }
-    }
+    }    
+    
 
     // get specific product by id    
     public function getById($id) {
@@ -54,30 +58,30 @@ class ProductController {
     // create new product
     public function create($data) {
         $validatedData = $this->validateProductData($data);
-    
+
         if ($validatedData === null) {
             $response = array("message" => "Required fields cannot be empty.");
             $this->sendResponse($response);
             return;
         }
-    
+
         $this->product->name = $validatedData['name'];
         $this->product->brand = $validatedData['brand'];
         $this->product->description = $validatedData['description'];
         $this->product->price = $validatedData['price'];
         $this->product->discount_id = $validatedData['discount_id'];
         $this->product->size_id = $validatedData['size_id'];
-    
+
         if ($this->product->create()) {
             $productId = $this->db->lastInsertId();
-    
+
             // stock handling
             $sizeId = $this->product->size_id;
             $quantity = isset($data['quantity']) ? $data['quantity'] : 0;
             $this->stock->insertProductStock($productId, $sizeId, $quantity);
-    
+
             // product images handling
-            $this->handleProductImages($productId, $data['images']);
+            $this->handleProductImages($productId, isset($data['images']) ? $data['images'] : []);
 
             $response = array("message" => "Product created.");
         } else {
@@ -95,22 +99,22 @@ class ProductController {
         $this->product->price = isset($data['price']) ? $data['price'] : null;
         $this->product->discount_id = isset($data['discount_id']) ? $data['discount_id'] : 0;
         $this->product->size_id = isset($data['size_id']) ? $data['size_id'] : 0;
-
+    
         if (is_null($this->product->id) || is_null($this->product->name) || is_null($this->product->brand) || is_null($this->product->description) || is_null($this->product->price)) {
             $response = array("message" => "Required fields cannot be empty.");
             $this->sendResponse($response, 400);
             return;
         }
-
+    
         if ($this->product->update()) {
             // Update stock quantity for the specified size
             $sizeId = $this->product->size_id;
             $quantity = isset($data['quantity']) ? $data['quantity'] : 0;
             $this->updateProductStock($this->product->id, $sizeId, $quantity);
-            
+    
             // Update product images
-            $this->handleProductImages($this->product->id, $data['images']);
-
+            $this->handleProductImages($this->product->id, isset($data['images']) ? $data['images'] : []);
+    
             $response = array("message" => "Product updated.");
             $this->sendResponse($response, 200);
         } else {
@@ -119,6 +123,7 @@ class ProductController {
             $this->sendResponse($response, 404, $errorMessage);
         }
     }
+    
 
     private function updateProductStock($productId, $sizeId, $quantity) {
         $existingStock = $this->stock->readBySize($sizeId);
@@ -142,6 +147,40 @@ class ProductController {
             $response = array("message" => "Product could not be deleted.");
         }
     
+        $this->sendResponse($response);
+    }
+
+    public function addCategory($categoryId, $productId= null) {
+        if ($productId === null) {
+            $productId = $this->product->id;
+        }
+        if ($this->product->addCategory($categoryId, $productId)) {
+            $response = array("message" => "Category added to product successfully.");
+        } else {
+            $response = array("message" => "Failed to add category to product.");
+        }
+        $this->sendResponse($response);
+    }
+
+    public function getCategories($productId) {
+        $this->product->id = $productId;
+        $categories = $this->product->getCategories();
+        if ($categories) {
+            $response = array("categories" => $categories);
+            $this->sendResponse($response);
+        } else {
+            $response = array("message" => "No categories found for this product.");
+            $this->sendResponse($response);
+        }
+    }
+
+    public function updateCategories($categoryIds) {
+        $this->product->id = $_GET['id'];
+        $this->product->removeAllCategories();
+        foreach ($categoryIds as $categoryId) {
+            $this->product->addCategory($categoryId);
+        }
+        $response = array("message" => "Product categories updated successfully.");
         $this->sendResponse($response);
     }
 
@@ -194,9 +233,6 @@ class ProductController {
     
         return $validatedData;
     }
-    
-    
-    
 
     private function sendResponse($response, $statusCode = 200, $errorMessage = null) {
         http_response_code($statusCode);
@@ -204,7 +240,10 @@ class ProductController {
             $response['error'] = $errorMessage;
         }
         echo json_encode($response);
-    }    
+    }
+    
+    
+       
 
 }
 ?>

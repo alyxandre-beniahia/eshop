@@ -35,8 +35,10 @@ class ProductCategory {
         $query = "SELECT * FROM " . $this->table_name;
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        echo "Data retrieved successfully";
+        return $stmt;
     }
+    
 
     function update() {
         $query = "UPDATE " . $this->table_name . " SET name=:name, description=:description, updated_at=NOW() WHERE id=:id";
@@ -79,6 +81,29 @@ class ProductCategory {
 
         return false;
     }
+
+    function addProduct($productId) {
+        $query = "INSERT INTO product_category_mapping (product_id, category_id) VALUES (:product_id, :category_id)";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":product_id", $productId);
+        $stmt->bindParam(":category_id", $this->id);
+        if ($stmt->execute()) {
+            return true;
+        }
+        return false;
+    }
+
+    function getProducts() {
+        $query = "SELECT p.*
+                  FROM products p
+                  JOIN product_category_mapping pcm ON p.id = pcm.product_id
+                  WHERE pcm.category_id = :category_id";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":category_id", $this->id);
+        $stmt->execute();
+        return $stmt;
+    }
+    
 
     private function sanitize() {
         $this->id = isset($this->id) ? $this->id : null;

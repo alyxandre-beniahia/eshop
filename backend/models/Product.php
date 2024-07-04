@@ -113,6 +113,27 @@ class Product {
         return false;
     }
 
+    function addCategory($categoryId, $productId) {
+        $query = "INSERT INTO product_category_mapping (product_id, category_id) VALUES (:product_id, :category_id)";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":product_id", $productId);
+        $stmt->bindParam(":category_id", $categoryId);
+        if ($stmt->execute()) {
+            return true;
+        }
+        return false;
+    }    
+    
+    function getCategories() {
+        $query = "SELECT pc.* FROM product_categories pc
+                  JOIN product_category_mapping pcm ON pc.id = pcm.category_id
+                  WHERE pcm.product_id = :product_id";
+        $stmt = $this->conn->prepare($query);
+        $stmt->bindParam(":product_id", $this->id);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }    
+
     private function sanitize() {
         $this->id = isset($this->id) ? $this->id : null;
         $this->name = isset($this->name) ? htmlspecialchars(strip_tags($this->name)) : null;

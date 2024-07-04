@@ -1,7 +1,7 @@
 <?php
 class OrderItems {
     private $conn;
-    private $table_name = "ORDER_ITEMS";
+    private $table_name = "order_items";
 
     public $id;
     public $order_id;
@@ -17,7 +17,7 @@ class OrderItems {
     }
 
     function create() {
-        $query = "INSERT INTO " . $this->table_name . " SET order_id=:order_id, product_id=:product_id, quantity=:quantity, created_at=:created_at, modified_at=:modified_at";
+        $query = "INSERT INTO " . $this->table_name . " SET order_id=:order_id, product_id=:product_id, quantity=:quantity, created_at=:NOW(), modified_at=:NOW()";
 
         $stmt = $this->conn->prepare($query);
 
@@ -43,7 +43,7 @@ class OrderItems {
     }
 
     function update() {
-        $query = "UPDATE " . $this->table_name . " SET order_id=:order_id, product_id=:product_id, quantity=:quantity, created_at=:created_at, modified_at=:modified_at WHERE id=:id";
+        $query = "UPDATE " . $this->table_name . " SET order_id=:order_id, product_id=:product_id, quantity=:quantity, modified_at=:NOW() WHERE id=:id";
 
         $stmt = $this->conn->prepare($query);
 
