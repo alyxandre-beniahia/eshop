@@ -1,5 +1,16 @@
 <?php
 include_once 'middleware/auth.php';
+// Enable CORS
+header("Access-Control-Allow-Origin: http://localhost:5173"); // Replace with your frontend origin
+header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
+header("Access-Control-Allow-Credentials: true");
+
+// Handle preflight requests
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200); // Send a successful HTTP status code
+    exit;
+}
 
 class Router
 {
@@ -28,6 +39,15 @@ class Router
 }
 
 $router = new Router();
+
+$router->define('OPTIONS', '/*', function() {
+    header("Access-Control-Allow-Origin: http://localhost:5173"); // Replace with your frontend origin
+    header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+    header("Access-Control-Allow-Headers: Content-Type, Authorization");
+    header("Access-Control-Allow-Credentials: true");
+    http_response_code(200);
+    exit;
+});
 
 // Users routes Tested OK
 // http://localhost:8000/users
@@ -110,33 +130,58 @@ $router->define('GET', '/products', function() {
 
 
 $router->define('POST', '/products', function() {
-    include_once 'routes/productRoutes.php';
+    $secret_key = "secret";
+    $userData = authenticateRequest($secret_key);
+    if ($userData['user_role'] === 'admin') {
+        include_once 'routes/productRoutes.php';
+    }
 });
 
 $router->define('PUT', '/products', function() {
-    include_once 'routes/productRoutes.php';
+    $secret_key = "secret";
+    $userData = authenticateRequest($secret_key);
+    if ($userData['user_role'] === 'admin') {
+        include_once 'routes/productRoutes.php';
+    }
 });
 
 $router->define('DELETE', '/products', function() {
-    include_once 'routes/productRoutes.php';
+    $secret_key = "secret";
+    $userData = authenticateRequest($secret_key);
+    if ($userData['user_role'] === 'admin') {
+        include_once 'routes/productRoutes.php';
+    }
 });
 
 
 // ________________ Discounts routes ________________
 $router->define('GET', '/discounts', function() {
-    handleJsonResponse('routes/discountRoutes.php');
+    include_once 'routes/discountRoutes.php';
 });
 
 $router->define('POST', '/discounts', function() {
-    include_once 'routes/discountRoutes.php';
+    $secret_key = "secret";
+    $userData = authenticateRequest($secret_key);
+    var_dump($userData);
+    if ($userData['userRole'] === 'admin') {
+        include_once 'routes/discountRoutes.php';
+    }
 });
 
 $router->define('PUT', '/discounts', function() {
-    include_once 'routes/discountRoutes.php';
+    $secret_key = "secret";
+    $userData = authenticateRequest($secret_key);
+    if ($userData['user_role'] === 'admin') {
+        include_once 'routes/discountRoutes.php';
+    }
 });
 
 $router->define('DELETE', '/discounts', function() {
-    include_once 'routes/discountRoutes.php';
+    $secret_key = "secret";
+    $userData = authenticateRequest($secret_key);
+    if ($userData['user_role'] === 'admin') {
+        include_once 'routes/discountRoutes.php';
+    }
 });
 
 // ProductCategory routes Tested OK
@@ -160,16 +205,29 @@ $router->define('GET', '/categories', function() {
 });
 
 $router->define('POST', '/categories', function() {
-    include_once 'routes/productCategoryRoutes.php';
+    $secret_key = "secret";
+    $userData = authenticateRequest($secret_key);
+    if ($userData['user_role'] === 'admin') {
+        include_once 'routes/productCategoryRoutes.php';
+    }
 });
 
 $router->define('PUT', '/categories', function() {
-    include_once 'routes/productCategoryRoutes.php';
+    $secret_key = "secret";
+    $userData = authenticateRequest($secret_key);
+    if ($userData['user_role'] === 'admin') {
+        include_once 'routes/productCategoryRoutes.php';
+    }
 });
 
 $router->define('DELETE', '/categories', function() {
-    include_once 'routes/productCategoryRoutes.php';
+    $secret_key = "secret";
+    $userData = authenticateRequest($secret_key);
+    if ($userData['user_role'] === 'admin') {
+        include_once 'routes/productCategoryRoutes.php';
+    }
 });
+
 
 $method = $_SERVER['REQUEST_METHOD'];
 $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
