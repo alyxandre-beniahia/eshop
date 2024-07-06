@@ -39,14 +39,15 @@ class Product {
     
         return false;
     }
-    
     function readById() {
         $query = "SELECT p.*, d.discount_percent,
-                         IF(d.discount_percent IS NULL, p.price, p.price * (1 - d.discount_percent / 100)) AS discounted_price
+                         IF(d.discount_percent IS NULL, p.price, p.price * (1 - d.discount_percent / 100)) AS discounted_price,
+                         (SELECT GROUP_CONCAT(REPLACE(pi.image_path, 'C:\\wamp64\\www\\betterthisthannaked\\', '/') SEPARATOR ',')
+                          FROM product_images pi
+                          WHERE pi.product_id = p.id) AS images
                   FROM " . $this->table_name . " p
                   LEFT JOIN discounts d ON p.discount_id = d.id
                   WHERE p.id = :id";
-    
         $stmt = $this->conn->prepare($query);
         $this->id = htmlspecialchars(strip_tags($this->id));
         $stmt->bindParam(":id", $this->id);
@@ -54,18 +55,27 @@ class Product {
         if ($stmt->execute()) {
             return $stmt;
         }
-    
+              
         return null;
     }
     
+    
 
     function read() {
-        $query = "SELECT * FROM " . $this->table_name;
+        $query = "SELECT p.*, d.discount_percent,
+                         IF(d.discount_percent IS NULL, p.price, p.price * (1 - d.discount_percent / 100)) AS discounted_price,
+                         (SELECT GROUP_CONCAT(pi.image_path)
+                          FROM product_images pi
+                          WHERE pi.product_id = p.id) AS images
+                  FROM " . $this->table_name . " p
+                  LEFT JOIN discounts d ON p.discount_id = d.id";
+    
         $stmt = $this->conn->prepare($query);
         $stmt->execute();
-        echo "Data retrieved from database";
+    
         return $stmt;
     }
+    
     
 
     function update() {

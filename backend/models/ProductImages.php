@@ -18,22 +18,24 @@ class ProductImages {
                     product_id = :product_id,
                     image_path = :image_path,
                     is_primary = :is_primary";
-
+    
         $stmt = $this->conn->prepare($query);
-
+    
+        $this->product_id = htmlspecialchars(strip_tags($this->product_id));
         $this->image_path = htmlspecialchars(strip_tags($this->image_path));
         $this->is_primary = htmlspecialchars(strip_tags($this->is_primary));
-
+    
         $stmt->bindParam(":product_id", $this->product_id);
         $stmt->bindParam(":image_path", $this->image_path);
         $stmt->bindParam(":is_primary", $this->is_primary);
-
+    
         if ($stmt->execute()) {
             return true;
         }
-
+    
         return false;
     }
+    
 
     function read() {
         $query = "SELECT * FROM " . $this->table_name . " WHERE product_id = ?";

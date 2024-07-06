@@ -7,7 +7,10 @@ import AuthService from './services/AuthService';
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [navigation, setNavigation] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [currentNav, setCurrentNav] = useState(null);
+
 
   useEffect(() => {
     const token = AuthService.getCurrentUser();
@@ -26,7 +29,7 @@ const App = () => {
           path="/backoffice"
           element={
             isAuthenticated ? (
-              <BackofficeLayout />
+              <BackofficeLayout onNavClick={setCurrentNav} />
             ) : (
               <Navigate to="/login" replace />
             )

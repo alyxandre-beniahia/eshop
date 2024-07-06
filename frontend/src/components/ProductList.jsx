@@ -1,10 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import ProductEditModal from './ProductEditModal';
+import ProductCreateModal from './ProductCreateModal';
 
 const ProductList = () => {
   const [products, setProducts] = useState([]);
   const [editingProduct, setEditingProduct] = useState(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   useEffect(() => {
     axios.get('http://localhost:8000/products')
@@ -21,6 +23,11 @@ const ProductList = () => {
     setEditingProduct(product);
   };
 
+  const handleCreateProduct = (newProduct) => {
+    setProducts([...products, newProduct]);
+    setShowCreateModal(false);
+  };
+
   const handleUpdateProduct = (updatedProduct) => {
     axios.put(`http://localhost:8000/products/${updatedProduct.id}`, updatedProduct)
       .then(response => {
@@ -34,6 +41,22 @@ const ProductList = () => {
 
   return (
     <div>
+      <div>
+      <h2 className="text-2xl font-bold mb-4">Product List</h2>
+      <button
+        className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mb-4"
+        onClick={() => setShowCreateModal(true)}
+      >
+        Create Product
+      </button>
+      {/* ... (existing code) */}
+      {showCreateModal && (
+        <ProductCreateModal
+          onCreateProduct={handleCreateProduct}
+          onCancel={() => setShowCreateModal(false)}
+        />
+      )}
+    </div>
       <h2 className="text-2xl font-bold mb-4">Product List</h2>
       <table className="w-full table-auto">
         <thead>
@@ -47,6 +70,22 @@ const ProductList = () => {
         <tbody>
           {products.map(product => (
             <tr key={product.id}>
+              <td className="border px-4 py-2">
+                {product.images && product.images.length > 0 ? (
+                  <div className="flex">
+                    {product.images.split(',').map((imagePath, index) => (
+                      <img
+                        key={index}
+                        src={`http://localhost:8000/${imagePath}`}
+                        alt={`Product ${product.id} Image ${index + 1}`}
+                        className="w-20 h-20 object-cover mr-2"
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <span>No images available</span>
+                )}
+              </td>
               <td className="border px-4 py-2">{product.name}</td>
               <td className="border px-4 py-2">{product.brand}</td>
               <td className="border px-4 py-2">{product.price} €</td>

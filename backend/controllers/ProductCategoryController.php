@@ -16,7 +16,7 @@ class ProductCategoryController {
         $stmt = $this->productCategory->read();
         if ($stmt !== null) {
             $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            $response = array("products" => $products);
+            $response = array("categories" => $products);
             $this->sendResponse($response);
         } else {
             $response = array("message" => "Error retrieving products");

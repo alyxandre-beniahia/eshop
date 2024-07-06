@@ -132,7 +132,7 @@ $router->define('GET', '/products', function() {
 $router->define('POST', '/products', function() {
     $secret_key = "secret";
     $userData = authenticateRequest($secret_key);
-    if ($userData['user_role'] === 'admin') {
+    if ($userData) {
         include_once 'routes/productRoutes.php';
     }
 });
@@ -140,7 +140,7 @@ $router->define('POST', '/products', function() {
 $router->define('PUT', '/products', function() {
     $secret_key = "secret";
     $userData = authenticateRequest($secret_key);
-    if ($userData['user_role'] === 'admin') {
+    if ($userData) {
         include_once 'routes/productRoutes.php';
     }
 });
@@ -148,14 +148,56 @@ $router->define('PUT', '/products', function() {
 $router->define('DELETE', '/products', function() {
     $secret_key = "secret";
     $userData = authenticateRequest($secret_key);
-    if ($userData['user_role'] === 'admin') {
+    if ($userData) {
         include_once 'routes/productRoutes.php';
     }
 });
+// Sizes routes 
+$router->define('GET', '/sizes', function() {
+    ob_start();
+    include_once 'routes/sizeRoutes.php';
+    $output = ob_get_clean();
 
+    $json_start = strpos($output, '{');
+    if ($json_start !== false) {
+        $json_response = json_decode(substr($output, $json_start), true);
+        if ($json_response) {
+            echo json_encode($json_response);
+        } else {
+            echo json_encode(array("message" => "Invalid JSON response"));
+        }
+    } else {
+        echo json_encode(array("message" => "No JSON response found"));
+    }
+});
+
+$router->define('POST', '/sizes', function() {
+    $secret_key = "secret";
+    $userData = authenticateRequest($secret_key);
+    if ($userData['user_role'] === 'admin') {
+        include_once 'routes/sizeRoutes.php';
+    }
+});
+
+$router->define('PUT', '/sizes', function() {
+    $secret_key = "secret";
+    $userData = authenticateRequest($secret_key);
+    if ($userData['user_role'] === 'admin') {
+        include_once 'routes/sizeRoutes.php';
+    }
+});
+
+$router->define('DELETE', '/sizes', function() {
+    $secret_key = "secret";
+    $userData = authenticateRequest($secret_key);
+    if ($userData['user_role'] === 'admin') {
+        include_once 'routes/sizeRoutes.php';
+    }
+});
 
 // ________________ Discounts routes ________________
 $router->define('GET', '/discounts', function() {
+
     include_once 'routes/discountRoutes.php';
 });
 

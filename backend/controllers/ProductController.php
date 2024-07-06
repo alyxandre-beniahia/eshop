@@ -2,7 +2,7 @@
 include_once '../config/db.php';
 include_once '../models/Product.php';
 include_once '../models/Stock.php';
-include_once '../models/Image.php';
+include_once '../models/ProductImages.php';
 include_once '../models/Product_category.php';
 
 class ProductController {
@@ -58,37 +58,38 @@ class ProductController {
     // create new product
     public function create($data) {
         $validatedData = $this->validateProductData($data);
-
+    
         if ($validatedData === null) {
             $response = array("message" => "Required fields cannot be empty.");
             $this->sendResponse($response);
             return;
         }
-
+    
         $this->product->name = $validatedData['name'];
         $this->product->brand = $validatedData['brand'];
         $this->product->description = $validatedData['description'];
         $this->product->price = $validatedData['price'];
         $this->product->discount_id = $validatedData['discount_id'];
         $this->product->size_id = $validatedData['size_id'];
-
+    
         if ($this->product->create()) {
             $productId = $this->db->lastInsertId();
-
+    
             // stock handling
             $sizeId = $this->product->size_id;
             $quantity = isset($data['quantity']) ? $data['quantity'] : 0;
             $this->stock->insertProductStock($productId, $sizeId, $quantity);
-
+    
             // product images handling
             $this->handleProductImages($productId, isset($data['images']) ? $data['images'] : []);
-
+    
             $response = array("message" => "Product created.");
         } else {
             $response = array("message" => "Product could not be created.");
         }
         $this->sendResponse($response);
     }
+    
     
 
     public function update($data) {
@@ -183,21 +184,43 @@ class ProductController {
         $response = array("message" => "Product categories updated successfully.");
         $this->sendResponse($response);
     }
-
     private function handleProductImages($productId, $images) {
-        if (!empty($images)) {
-            // Delete existing images for the product
-            $this->deleteProductImages($productId);
-
+        if (!empty($images)) {    
             // Insert new images
             foreach ($images as $image) {
-                $this->productImages->product_id = $productId;
-                $this->productImages->image_path = $image['path'];
-                $this->productImages->is_primary = $image['is_primary'];
-                $this->productImages->create();
+                $imagePath = $this->saveBase64Image($image['path']);
+                if ($imagePath) {
+                    $this->productImages->product_id = $productId;
+                    $this->productImages->image_path = $imagePath;
+                    $this->productImages->is_primary = isset($image['is_primary']) ? $image['is_primary'] : 0;
+                    $this->productImages->create();
+                }
             }
         }
     }
+    
+    
+    
+    private function saveBase64Image($base64Image) {
+        $imageData = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $base64Image));
+        $uploadsDir = realpath(__DIR__ . '/../..') . '/uploads/'; // Get the absolute path to the uploads directory
+        $imagePath = $uploadsDir . uniqid() . '.png';
+    
+        if (!is_dir($uploadsDir)) {
+            mkdir($uploadsDir, 0755, true); // Create the uploads directory if it doesn't exist
+        }
+    
+        $success = file_put_contents($imagePath, $imageData);
+    
+        if ($success) {
+            return $imagePath;
+        }
+    
+        return false;
+    }
+    
+    
+    
 
     private function deleteProductImages($productId) {
         $this->productImages->product_id = $productId;

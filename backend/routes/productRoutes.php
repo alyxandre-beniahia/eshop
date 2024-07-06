@@ -37,6 +37,7 @@ switch ($requestMethod) {
         break;    
     case 'POST':
         $data = json_decode(file_get_contents("php://input"), true);
+        $productController->create($data);
         if (isset($data['product_id']) && isset($data['category_id'])) {
             $productController->addCategory($data['category_id'], $data['product_id']);
         } else {
