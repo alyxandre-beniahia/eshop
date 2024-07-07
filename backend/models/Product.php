@@ -9,7 +9,6 @@ class Product {
     public $description;
     public $price;
     public $discount_id;
-    public $size_id;
 
     public function __construct($db) {
         $this->conn = $db;
@@ -20,7 +19,7 @@ class Product {
     }
 
     function create() {
-        $query = "INSERT INTO " . $this->table_name . " SET name=:name, brand=:brand, description=:description, price=:price, discount_id=:discount_id, size_id=:size_id";
+        $query = "INSERT INTO " . $this->table_name . " SET name=:name, brand=:brand, description=:description, price=:price, discount_id=:discount_id";
     
         $stmt = $this->conn->prepare($query);
     
@@ -31,7 +30,6 @@ class Product {
         $stmt->bindParam(":description", $this->description);
         $stmt->bindParam(":price", $this->price);
         $stmt->bindParam(":discount_id", $this->discount_id);
-        $stmt->bindParam(":size_id", $this->size_id);
     
         if ($stmt->execute()) {
             return true;
@@ -80,7 +78,8 @@ class Product {
     
 
     function update() {
-        $query = "UPDATE " . $this->table_name . " SET name=:name, brand=:brand, description=:description, price=:price, discount_id=:discount_id, size_id=:size_id WHERE id=:id";
+        $query = "UPDATE " . $this->table_name . " SET name=:name, brand=:brand, description=:description, price=:price, discount_id=:discount_id WHERE id=:id";
+        // Remove 'size_id=:size_id,' from the SET clause
     
         $stmt = $this->conn->prepare($query);
     
@@ -92,37 +91,35 @@ class Product {
         $stmt->bindParam(":description", $this->description);
         $stmt->bindParam(":price", $this->price);
         $stmt->bindParam(":discount_id", $this->discount_id);
-        $stmt->bindParam(":size_id", $this->size_id);
+        // Remove the line that binds the :size_id parameter
     
-        if ($stmt->execute()) {
-            $rowCount = $stmt->rowCount();
-            if ($rowCount > 0) {
-                return true;
-            } else {
-                return false;
-            }
-        } else {
-            $error = $stmt->errorInfo();
-            echo "Error executing query: " . $error[2];
-            return false;
-        }
-    }    
-    
-    function delete() {
-        $query = "DELETE FROM " . $this->table_name . " WHERE id=:id";
-
-        $stmt = $this->conn->prepare($query);
-
-        $this->id = htmlspecialchars(strip_tags($this->id));
-
-        $stmt->bindParam(":id", $this->id);
-
         if ($stmt->execute()) {
             return true;
         }
-
+    
         return false;
     }
+      
+    
+    function delete() {
+        $query = "DELETE FROM " . $this->table_name . " WHERE id=:id";
+    
+        $stmt = $this->conn->prepare($query);
+    
+        $this->id = htmlspecialchars(strip_tags($this->id));
+    
+        $stmt->bindParam(":id", $this->id);
+    
+        if ($stmt->execute()) {
+            // Delete associated stock records
+            $stock = new Stock($this->conn);
+            $stock->deleteProductStock($this->id);
+    
+            return true;
+        }
+    
+        return false;
+    }    
 
     function addCategory($categoryId, $productId) {
         $query = "INSERT INTO product_category_mapping (product_id, category_id) VALUES (:product_id, :category_id)";
@@ -146,16 +143,17 @@ class Product {
     }    
 
     private function sanitize() {
-        $this->id = isset($this->id) ? $this->id : null;
-        $this->name = isset($this->name) ? htmlspecialchars(strip_tags($this->name)) : null;
-        $this->brand = isset($this->brand) ? htmlspecialchars(strip_tags($this->brand)) : null;
-        $this->description = isset($this->description) ? htmlspecialchars(strip_tags($this->description)) : null;
-        $this->discount_id = isset($this->discount_id) ? htmlspecialchars(strip_tags($this->discount_id)) : null;
-        $this->size_id = isset($this->size_id) ? htmlspecialchars(strip_tags($this->size_id)) : null;
+        $this->name = htmlspecialchars(strip_tags($this->name));
+        $this->brand = htmlspecialchars(strip_tags($this->brand));
+        $this->description = htmlspecialchars(strip_tags($this->description));
+        $this->price = htmlspecialchars(strip_tags($this->price));
+        $this->discount_id = htmlspecialchars(strip_tags($this->discount_id));
+        // Remove the line that sanitizes $this->size_id
     }
+    
 
     function getStock() {
-        $query = "SELECT s.id, s.quantity, sz.name as size_name
+        $query = "SELECT s.id, s.quantity, sz.id as size_id, sz.name as size_name
                   FROM " . $this->table_name . " p
                   JOIN Stock s ON p.id = s.product_id
                   JOIN Sizes sz ON s.size_id = sz.id
@@ -165,8 +163,24 @@ class Product {
         $stmt->bindParam(":product_id", $this->id);
         $stmt->execute();
     
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $stockInfo = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+        // Restructure the stock information
+        $restructuredStock = array();
+        foreach ($stockInfo as $stock) {
+            $restructuredStock[] = array(
+                'id' => $stock['id'],
+                'quantity' => $stock['quantity'],
+                'size_id' => $stock['size_id'],
+                'size_name' => $stock['size_name']
+            );
+        }
+    
+        return $restructuredStock;
     }
+    
+    
+    
     
 }
 ?>

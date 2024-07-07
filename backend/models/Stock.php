@@ -61,6 +61,15 @@ class Stock {
     
         return $stmt->execute();
     }
+
+    function deleteProductStock($productId) {
+    $query = "DELETE FROM " . $this->table_name . " WHERE product_id = ?";
+    $stmt = $this->conn->prepare($query);
+    $stmt->bindParam(1, $productId);
+
+    return $stmt->execute();
+}
+
     
 
 }

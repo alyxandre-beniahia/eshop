@@ -31,6 +31,11 @@ class ProductController {
                 $stmt = $this->productImages->read();
                 $images = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 $product['images'] = array_column($images, 'image_path');
+    
+                // Get stock information for the product
+                $this->product->id = $product['id'];
+                $stockInfo = $this->product->getStock();
+                $product['stock'] = $stockInfo;
             }
             $response = array("products" => $products);
             $this->sendResponse($response);
@@ -38,7 +43,8 @@ class ProductController {
             $response = array("message" => "Error retrieving products");
             $this->sendResponse($response, 500);
         }
-    }     
+    }
+       
     
 
     // get specific product by id    
@@ -76,17 +82,19 @@ class ProductController {
         $this->product->description = $validatedData['description'];
         $this->product->price = $validatedData['price'];
         $this->product->discount_id = $validatedData['discount_id'];
-        $this->product->size_id = $validatedData['size_id'];
     
         if ($this->product->create()) {
             $productId = $this->db->lastInsertId();
     
-            // stock handling
-            $sizeId = $this->product->size_id;
-            $quantity = isset($data['quantity']) ? $data['quantity'] : 0;
-            $this->stock->insertProductStock($productId, $sizeId, $quantity);
+            // Extract size quantities from the request data
+            $sizeQuantities = isset($data['sizeQuantities']) ? $data['sizeQuantities'] : [];
     
-            // product images handling
+            // Insert stock entries for each size
+            foreach ($sizeQuantities as $sizeId => $quantity) {
+                $this->stock->insertProductStock($productId, $sizeId, $quantity);
+            }
+    
+            // Handle product images
             $this->handleProductImages($productId, isset($data['images']) ? $data['images'] : []);
     
             $response = array("message" => "Product created.");
@@ -97,6 +105,7 @@ class ProductController {
     }
     
     
+    
 
     public function update($data) {
         $this->product->id = isset($data['id']) ? $data['id'] : null;
@@ -105,7 +114,6 @@ class ProductController {
         $this->product->description = isset($data['description']) ? $data['description'] : null;
         $this->product->price = isset($data['price']) ? $data['price'] : null;
         $this->product->discount_id = isset($data['discount_id']) ? $data['discount_id'] : 0;
-        $this->product->size_id = isset($data['size_id']) ? $data['size_id'] : 0;
     
         if (is_null($this->product->id) || is_null($this->product->name) || is_null($this->product->brand) || is_null($this->product->description) || is_null($this->product->price)) {
             $response = array("message" => "Required fields cannot be empty.");
@@ -114,13 +122,34 @@ class ProductController {
         }
     
         if ($this->product->update()) {
-            // Update stock quantity for the specified size
-            $sizeId = $this->product->size_id;
-            $quantity = isset($data['quantity']) ? $data['quantity'] : 0;
-            $this->updateProductStock($this->product->id, $sizeId, $quantity);
+            // Update stock quantities
+            if (isset($data['stock']) && is_array($data['stock'])) {
+                foreach ($data['stock'] as $stockItem) {
+                    $sizeId = $stockItem['size_id'];
+                    $quantity = $stockItem['quantity'];
+                    $productId = $this->product->id;
+                    
+                    // Log the values
+                    echo "Product ID: $productId, Size ID: $sizeId, Quantity: $quantity\n";
+                    
+                    $this->updateProductStock($productId, $sizeId, $quantity);
+                }
+                
+            }
     
-            // Update product images
-            $this->handleProductImages($this->product->id, isset($data['images']) ? $data['images'] : []);
+            // If the size_id has changed, update the stock accordingly
+            if (isset($data['size_id']) && $data['size_id']) {
+                $newSizeId = $data['size_id'];
+                $existingStock = $this->stock->readBySize($newSizeId);
+    
+                if ($existingStock) {
+                    // Update existing stock quantity for the new size
+                    $this->stock->updateProductStock($this->product->id, $newSizeId, $existingStock['quantity']);
+                } else {
+                    // Insert new stock entry for the new size with a quantity of 0
+                    $this->stock->insertProductStock($this->product->id, $newSizeId, 0);
+                }
+            }
     
             $response = array("message" => "Product updated.");
             $this->sendResponse($response, 200);
@@ -130,6 +159,8 @@ class ProductController {
             $this->sendResponse($response, 404, $errorMessage);
         }
     }
+    
+    
     
 
     private function updateProductStock($productId, $sizeId, $quantity) {
@@ -240,26 +271,25 @@ class ProductController {
     private function validateProductData($data) {
         $validatedData = array();
     
+        // Validate fields for both create and update
         $validatedData['name'] = isset($data['name']) && is_string($data['name']) ? trim($data['name']) : null;
-    
         $validatedData['brand'] = isset($data['brand']) && is_string($data['brand']) ? trim($data['brand']) : null;
-    
         $validatedData['description'] = isset($data['description']) && is_string($data['description']) ? trim($data['description']) : null;
-    
-        $validatedData['price'] = isset($data['price']) && is_numeric($data['price']) ? (float) $data['price'] : null;
-    
+        $validatedData['price'] = isset($data['price']) && is_numeric($data['price']) && $data['price'] > 0 ? (float) $data['price'] : null;
         $validatedData['discount_id'] = isset($data['discount_id']) && !empty($data['discount_id']) ? $data['discount_id'] : 0;
+        $validatedData['quantity'] = isset($data['quantity']) && is_numeric($data['quantity']) && $data['quantity'] >= 0 ? (int) $data['quantity'] : 0;
     
-        $validatedData['size_id'] = isset($data['size_id']) && !empty($data['size_id']) ? $data['size_id'] : 0;
-    
-        $validatedData['quantity'] = isset($data['quantity']) && is_numeric($data['quantity']) ? (int) $data['quantity'] : 0;
+        // Validate id only for update
+        if (isset($data['id']) && is_numeric($data['id'])) {
+            $validatedData['id'] = (int) $data['id'];
+        }
     
         if (is_null($validatedData['name']) || is_null($validatedData['brand']) || is_null($validatedData['description']) || is_null($validatedData['price'])) {
             return null;
         }
     
         return $validatedData;
-    }
+    }    
 
     private function sendResponse($response, $statusCode = 200, $errorMessage = null) {
         http_response_code($statusCode);

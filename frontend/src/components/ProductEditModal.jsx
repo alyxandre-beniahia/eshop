@@ -4,11 +4,14 @@ import axios from 'axios';
 const ProductEditModal = ({ product, onUpdate, onCancel }) => {
   const [editedProduct, setEditedProduct] = useState({ ...product });
   const [sizes, setSizes] = useState([]);
+  const [stock, setStock] = useState(product.stock);
   const [discounts, setDiscounts] = useState([]);
   const [categories, setCategories] = useState([]);
 
   useEffect(() => {
     console.log(product)
+    setStock(product.stock);
+    setEditedProduct({ ...product, stock: product.stock });
     axios.get('http://localhost:8000/sizes')
     .then(response => {
       setSizes(response.data.data);
@@ -33,35 +36,47 @@ const ProductEditModal = ({ product, onUpdate, onCancel }) => {
   }, []);
 
   const handleChange = (e) => {
-    setEditedProduct({ ...editedProduct, [e.target.name]: e.target.value });
+    if (e.target.name.startsWith('stock-')) {
+      const sizeId = parseInt(e.target.name.split('-')[1], 10);
+      const newStock = editedProduct.stock.map((item) => {
+        if (item.size_id === sizeId) {
+          return { ...item, quantity: parseInt(e.target.value, 10) };
+        }
+        return item;
+      });
+      setEditedProduct({ ...editedProduct, stock: newStock });
+    } else {
+      setEditedProduct({ ...editedProduct, [e.target.name]: e.target.value });
+    }
   };
+
+  const handleStockChange = (e, sizeId) => {
+    const newQuantity = parseInt(e.target.value, 10);
+    const updatedStock = stock.map((item) => {
+      if (item.size_id === sizeId) {
+        return { ...item, quantity: newQuantity };
+      }
+      return item;
+    });
+    setStock(updatedStock);
+    setEditedProduct({ ...editedProduct, stock: updatedStock });
+  };
+  
+  
+  
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onUpdate(editedProduct);
-  };
-  const handleImageUpload = (e) => {
-    const files = e.target.files;
-    const uploadedImages = [];
+    const updatedProduct = {
+      ...editedProduct,
+      stock: stock.map((stockItem) => ({
+        ...stockItem,
+        quantity: stockItem.quantity,
+      })),
+    };
+    onUpdate(updatedProduct);
+  };  
   
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      const reader = new FileReader();
-  
-      reader.onloadend = () => {
-        uploadedImages.push({
-          path: reader.result,
-          is_primary: i === 0, // Set the first image as primary
-        });
-  
-        if (uploadedImages.length === files.length) {
-          setEditedProduct({ ...editedProduct, images: uploadedImages });
-        }
-      };
-  
-      reader.readAsDataURL(file);
-    }
-  };
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-gray-800 bg-opacity-50">
@@ -110,13 +125,13 @@ const ProductEditModal = ({ product, onUpdate, onCancel }) => {
             />
           </div>
           <div className="mb-4">
-            <label htmlFor="quantity" className="block font-bold mb-2">
+            <label htmlFor="price" className="block font-bold mb-2">
               Prix
             </label>
             <input
-              type="integer"
-              id="quantity"
-              name="quantity"
+              type="text"
+              id="price"
+              name="price"
               value={editedProduct.price}
               onChange={handleChange}
               className="border border-gray-400 p-2 w-full"
@@ -143,38 +158,24 @@ const ProductEditModal = ({ product, onUpdate, onCancel }) => {
             </select>
         </div>
         <div className="mb-4">
-            <label htmlFor="discount_id" className="block font-bold mb-2">
-                Tailles
-            </label>
-            <select
-                id="size_id"
-                name="size_id"
-                value={editedProduct.size_id}
-                onChange={handleChange}
+          <label htmlFor="stock" className="block font-bold mb-2">
+            Quantités
+          </label>
+          {stock.map((stockItem) => (
+            <div key={stockItem.size_id}>
+              <label htmlFor={`stock-${stockItem.size_id}`}>{stockItem.size_name}</label>
+              <input
+                type="number"
+                id={`stock-${stockItem.size_id}`}
+                name={`stock-${stockItem.size_id}`}
+                value={stockItem.quantity}
+                onChange={(e) => handleStockChange(e, stockItem.size_id)}
                 className="border border-gray-400 p-2 w-full"
-            >
-            <option value="">Choisir une taille</option>
-                {sizes.map(size => (
-                    <option key={size.id} value={size.id}>
-                        {size.name}
-                    </option>
-                ))}
-            </select>
+                required
+              />
+            </div>
+          ))}
         </div>
-        <div className="mb-4">
-            <label htmlFor="price" className="block font-bold mb-2">
-              Quantités
-            </label>
-            <input
-              type="text"
-              id="price"
-              name="price"
-              value={editedProduct.quantity}
-              onChange={handleChange}
-              className="border border-gray-400 p-2 w-full"
-              required
-            />
-          </div>
         <div className="mb-4">
             <label htmlFor="categories" className="block font-bold mb-2">
                 Catégories
@@ -194,19 +195,6 @@ const ProductEditModal = ({ product, onUpdate, onCancel }) => {
                 ))}
             </select>
         </div>
-        <div className="mb-4">
-            <label htmlFor="images" className="block font-bold mb-2">
-              Images
-            </label>
-            <input
-              type="file"
-              id="images"
-              name="images"
-              multiple
-              onChange={handleImageUpload}
-              className="border border-gray-400 p-2 w-full"
-            />
-          </div>
           <div className="flex justify-end">
             <button
               type="button"

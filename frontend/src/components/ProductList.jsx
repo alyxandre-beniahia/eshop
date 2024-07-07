@@ -8,6 +8,7 @@ const ProductList = () => {
   const [products, setProducts] = useState([]);
   const [editingProduct, setEditingProduct] = useState(null);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [sizes, setSizes] = useState([]);
 
   useEffect(() => {
     axios.get('http://localhost:8000/products')
@@ -17,6 +18,15 @@ const ProductList = () => {
       })
       .catch(error => {
         console.error('Error fetching products:', error);
+      });
+
+    axios.get('http://localhost:8000/sizes')
+      .then(response => {
+        setSizes(response.data.data);
+        console.log(response.data.data);
+      })
+      .catch(error => {
+        console.error('Error fetching sizes:', error);
       });
   }, [showCreateModal]);
 
@@ -32,10 +42,20 @@ const ProductList = () => {
   const handleUpdateProduct = (updatedProduct) => {
     const token = AuthService.getCurrentUser();
     axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    console.log(updatedProduct)
     axios.put(`http://localhost:8000/products?id=${updatedProduct.id}`, updatedProduct)
       .then(response => {
         setProducts(products.map(p => (p.id === updatedProduct.id ? updatedProduct : p)));
         setEditingProduct(null);
+
+        // Re-fetch size data after successful product update
+        axios.get('http://localhost:8000/sizes')
+          .then(response => {
+            setSizes(response.data.data);
+          })
+          .catch(error => {
+            console.error('Error fetching sizes:', error);
+          });
       })
       .catch(error => {
         console.error('Error updating product:', error);
@@ -48,14 +68,13 @@ const ProductList = () => {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       axios.delete(`http://localhost:8000/products?id=${product.id}`)
         .then(response => {
-          setProducts(products.filter(p => p.id!== product.id));
+          setProducts(products.filter(p => p.id !== product.id));
         })
         .catch(error => {
           console.error('Error deleting product:', error);
         });
     }
   };
-
 
   return (
     <div>
@@ -79,6 +98,7 @@ const ProductList = () => {
         <thead>
           <tr>
             <th className='px-4 py-2'>Images</th>
+            <th className='px-4 py-2'>Stock</th>
             <th className="px-4 py-2">Nom du produit</th>
             <th className="px-4 py-2">Marque</th>
             <th className="px-4 py-2">Prix</th>
@@ -102,6 +122,17 @@ const ProductList = () => {
                   </div>
                 ) : (
                   <span>No images available</span>
+                )}
+              </td>
+              <td className="border px-4 py-2">
+                {product.stock && product.stock.length > 0 ? (
+                  product.stock.map((stockItem, index) => (
+                    <div key={`${product.id}-${stockItem.size_id || `default-${index}`}`}>
+                      {stockItem.size_name}: {stockItem.quantity}
+                    </div>
+                  ))
+                ) : (
+                  'No stock available'
                 )}
               </td>
               <td className="border px-4 py-2">{product.name}</td>
