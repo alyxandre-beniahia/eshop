@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaHome, FaBoxOpen, FaChartBar, FaCog } from 'react-icons/fa';
+import { FaHome, FaBoxOpen, FaChartBar, FaUser } from 'react-icons/fa';
 
 const Sidebar = ({ showSidebar, onNavClick }) => {
   const handleNavClick = (navItem) => {
@@ -53,9 +53,9 @@ const Sidebar = ({ showSidebar, onNavClick }) => {
                 <a
                   href="#"
                   className="flex items-center text-gray-300 hover:text-white"
-                  onClick={() => handleNavClick('settings')}
+                  onClick={() => handleNavClick('users')}
                 >
-                  <FaCog className="mr-2" />
+                  <FaUser className="mr-2" />
                   Clients
                 </a>
               </li>

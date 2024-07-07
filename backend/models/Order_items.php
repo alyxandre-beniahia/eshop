@@ -6,6 +6,7 @@ class OrderItems {
     public $id;
     public $order_id;
     public $product_id;
+    public $size_id;
     public $quantity;
 
     public function __construct($db) {
@@ -17,7 +18,7 @@ class OrderItems {
     }
 
     function create() {
-        $query = "INSERT INTO " . $this->table_name . " SET order_id=:order_id, product_id=:product_id, quantity=:quantity, created_at=:NOW(), modified_at=:NOW()";
+        $query = "INSERT INTO " . $this->table_name . " SET order_id=:order_id, product_id=:product_id, size_id=:size_id, quantity=:quantity, created_at=:NOW(), modified_at=:NOW()";
 
         $stmt = $this->conn->prepare($query);
 
@@ -25,6 +26,7 @@ class OrderItems {
 
         $stmt->bindParam(":order_id", $this->order_id);
         $stmt->bindParam(":product_id", $this->product_id);
+        $stmt->bindParam(":size_id", $this->size_id);
         $stmt->bindParam(":quantity", $this->quantity);
 
         if ($stmt->execute()) {
@@ -43,7 +45,7 @@ class OrderItems {
     }
 
     function update() {
-        $query = "UPDATE " . $this->table_name . " SET order_id=:order_id, product_id=:product_id, quantity=:quantity, modified_at=:NOW() WHERE id=:id";
+        $query = "UPDATE " . $this->table_name . " SET order_id=:order_id, product_id=:product_id, size_id=:size_id, quantity=:quantity, modified_at=:NOW() WHERE id=:id";
 
         $stmt = $this->conn->prepare($query);
 
@@ -52,6 +54,7 @@ class OrderItems {
         $stmt->bindParam(":id", $this->id);
         $stmt->bindParam(":order_id", $this->order_id);
         $stmt->bindParam(":product_id", $this->product_id);
+        $stmt->bindParam(":size_id", $this->size_id);
         $stmt->bindParam(":quantity", $this->quantity);
 
         if ($stmt->execute()) {
@@ -88,6 +91,7 @@ class OrderItems {
         $this->id = isset($this->id) ? $this->id : null;
         $this->order_id = isset($this->order_id) ? htmlspecialchars(strip_tags($this->order_id)) : null;
         $this->product_id = isset($this->product_id) ? htmlspecialchars(strip_tags($this->product_id)) : null;
+        $this->size_id = isset($this->size_id) ? htmlspecialchars(strip_tags($this->size_id)) : null;
         $this->quantity = isset($this->quantity) ? htmlspecialchars(strip_tags($this->quantity)) : null;
     }
 

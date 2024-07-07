@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import Sidebar from './Sidebar';
 import Header from './Header';
 import ProductList from './ProductList'; // Import the ProductList component
+import UsersList from './UsersList'; // Import the UsersList component
 
 const BackofficeLayout = ({ onNavClick }) => {
   const [showSidebar, setShowSidebar] = useState(true);
@@ -23,6 +24,7 @@ const BackofficeLayout = ({ onNavClick }) => {
         <Header onToggleSidebar={toggleSidebar} />
         <main className="flex-1 p-6 overflow-y-auto">
           {currentNav === 'products' && <ProductList />}
+          {currentNav === 'users' && <UsersList/>}
           {/* Other components or content */}
         </main>
       </div>
