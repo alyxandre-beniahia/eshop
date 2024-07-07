@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import ProductEditModal from './ProductEditModal';
 import ProductCreateModal from './ProductCreateModal';
+import AuthService from '../services/AuthService';
 
 const ProductList = () => {
   const [products, setProducts] = useState([]);
@@ -17,7 +18,7 @@ const ProductList = () => {
       .catch(error => {
         console.error('Error fetching products:', error);
       });
-  }, []);
+  }, [showCreateModal]);
 
   const handleEditClick = (product) => {
     setEditingProduct(product);
@@ -29,7 +30,9 @@ const ProductList = () => {
   };
 
   const handleUpdateProduct = (updatedProduct) => {
-    axios.put(`http://localhost:8000/products/${updatedProduct.id}`, updatedProduct)
+    const token = AuthService.getCurrentUser();
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    axios.put(`http://localhost:8000/products?id=${updatedProduct.id}`, updatedProduct)
       .then(response => {
         setProducts(products.map(p => (p.id === updatedProduct.id ? updatedProduct : p)));
         setEditingProduct(null);
@@ -39,28 +42,43 @@ const ProductList = () => {
       });
   };
 
+  const handleDeleteClick = (product) => {
+    if (window.confirm('Are you sure you want to delete this product?')) {
+      const token = AuthService.getCurrentUser();
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+      axios.delete(`http://localhost:8000/products?id=${product.id}`)
+        .then(response => {
+          setProducts(products.filter(p => p.id!== product.id));
+        })
+        .catch(error => {
+          console.error('Error deleting product:', error);
+        });
+    }
+  };
+
+
   return (
     <div>
       <div>
-      <h2 className="text-2xl font-bold mb-4">Product List</h2>
-      <button
-        className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mb-4"
-        onClick={() => setShowCreateModal(true)}
-      >
-        Create Product
-      </button>
-      {/* ... (existing code) */}
-      {showCreateModal && (
-        <ProductCreateModal
-          onCreateProduct={handleCreateProduct}
-          onCancel={() => setShowCreateModal(false)}
-        />
-      )}
-    </div>
+        <h2 className="text-2xl font-bold mb-4">Product List</h2>
+        <button
+          className="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded mb-4"
+          onClick={() => setShowCreateModal(true)}
+        >
+          Create Product
+        </button>
+        {showCreateModal && (
+          <ProductCreateModal
+            onCreateProduct={handleCreateProduct}
+            onCancel={() => setShowCreateModal(false)}
+          />
+        )}
+      </div>
       <h2 className="text-2xl font-bold mb-4">Product List</h2>
       <table className="w-full table-auto">
         <thead>
           <tr>
+            <th className='px-4 py-2'>Images</th>
             <th className="px-4 py-2">Nom du produit</th>
             <th className="px-4 py-2">Marque</th>
             <th className="px-4 py-2">Prix</th>
@@ -73,7 +91,7 @@ const ProductList = () => {
               <td className="border px-4 py-2">
                 {product.images && product.images.length > 0 ? (
                   <div className="flex">
-                    {product.images.split(',').map((imagePath, index) => (
+                    {product.images.map((imagePath, index) => (
                       <img
                         key={index}
                         src={`http://localhost:8000/${imagePath}`}
@@ -96,7 +114,8 @@ const ProductList = () => {
                 >
                   Modifier
                 </button>
-                <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded ml-2">
+                <button className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded ml-2"
+                        onClick={()=> handleDeleteClick(product)}>
                   Supprimer
                 </button>
               </td>

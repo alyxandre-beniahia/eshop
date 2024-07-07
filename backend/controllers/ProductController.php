@@ -26,13 +26,19 @@ class ProductController {
         $stmt = $this->product->read();
         if ($stmt !== null) {
             $products = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            foreach ($products as &$product) {
+                $this->productImages->product_id = $product['id'];
+                $stmt = $this->productImages->read();
+                $images = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                $product['images'] = array_column($images, 'image_path');
+            }
             $response = array("products" => $products);
             $this->sendResponse($response);
         } else {
             $response = array("message" => "Error retrieving products");
             $this->sendResponse($response, 500);
         }
-    }    
+    }     
     
 
     // get specific product by id    
@@ -199,12 +205,11 @@ class ProductController {
         }
     }
     
-    
-    
     private function saveBase64Image($base64Image) {
         $imageData = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $base64Image));
-        $uploadsDir = realpath(__DIR__ . '/../..') . '/uploads/'; // Get the absolute path to the uploads directory
-        $imagePath = $uploadsDir . uniqid() . '.png';
+        $uploadsDir = realpath(__DIR__ . '/../public/uploads/'); // Get the absolute path to the uploads directory
+        $imageName = uniqid() . '.png';
+        $imagePath = $uploadsDir .'/'. $imageName;
     
         if (!is_dir($uploadsDir)) {
             mkdir($uploadsDir, 0755, true); // Create the uploads directory if it doesn't exist
@@ -213,12 +218,11 @@ class ProductController {
         $success = file_put_contents($imagePath, $imageData);
     
         if ($success) {
-            return $imagePath;
+            return 'uploads/' . $imageName; // Return a relative path
         }
     
         return false;
-    }
-    
+    }    
     
     
 

@@ -1,0 +1,3 @@
+# Serve static files from the uploads directory
+RewriteEngine On
+RewriteRule ^uploads/(.*)$ uploads/$1 [L]

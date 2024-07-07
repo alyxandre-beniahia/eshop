@@ -174,7 +174,7 @@ $router->define('GET', '/sizes', function() {
 $router->define('POST', '/sizes', function() {
     $secret_key = "secret";
     $userData = authenticateRequest($secret_key);
-    if ($userData['user_role'] === 'admin') {
+    if ($userData) {
         include_once 'routes/sizeRoutes.php';
     }
 });
@@ -182,7 +182,7 @@ $router->define('POST', '/sizes', function() {
 $router->define('PUT', '/sizes', function() {
     $secret_key = "secret";
     $userData = authenticateRequest($secret_key);
-    if ($userData['user_role'] === 'admin') {
+    if ($userData) {
         include_once 'routes/sizeRoutes.php';
     }
 });
@@ -190,7 +190,7 @@ $router->define('PUT', '/sizes', function() {
 $router->define('DELETE', '/sizes', function() {
     $secret_key = "secret";
     $userData = authenticateRequest($secret_key);
-    if ($userData['user_role'] === 'admin') {
+    if ($userData) {
         include_once 'routes/sizeRoutes.php';
     }
 });
@@ -205,7 +205,7 @@ $router->define('POST', '/discounts', function() {
     $secret_key = "secret";
     $userData = authenticateRequest($secret_key);
     var_dump($userData);
-    if ($userData['userRole'] === 'admin') {
+    if ($userData) {
         include_once 'routes/discountRoutes.php';
     }
 });
@@ -213,7 +213,7 @@ $router->define('POST', '/discounts', function() {
 $router->define('PUT', '/discounts', function() {
     $secret_key = "secret";
     $userData = authenticateRequest($secret_key);
-    if ($userData['user_role'] === 'admin') {
+    if ($userData) {
         include_once 'routes/discountRoutes.php';
     }
 });
@@ -221,7 +221,7 @@ $router->define('PUT', '/discounts', function() {
 $router->define('DELETE', '/discounts', function() {
     $secret_key = "secret";
     $userData = authenticateRequest($secret_key);
-    if ($userData['user_role'] === 'admin') {
+    if ($userData) {
         include_once 'routes/discountRoutes.php';
     }
 });
@@ -249,7 +249,7 @@ $router->define('GET', '/categories', function() {
 $router->define('POST', '/categories', function() {
     $secret_key = "secret";
     $userData = authenticateRequest($secret_key);
-    if ($userData['user_role'] === 'admin') {
+    if ($userData) {
         include_once 'routes/productCategoryRoutes.php';
     }
 });
@@ -257,7 +257,7 @@ $router->define('POST', '/categories', function() {
 $router->define('PUT', '/categories', function() {
     $secret_key = "secret";
     $userData = authenticateRequest($secret_key);
-    if ($userData['user_role'] === 'admin') {
+    if ($userData) {
         include_once 'routes/productCategoryRoutes.php';
     }
 });
@@ -265,7 +265,7 @@ $router->define('PUT', '/categories', function() {
 $router->define('DELETE', '/categories', function() {
     $secret_key = "secret";
     $userData = authenticateRequest($secret_key);
-    if ($userData['user_role'] === 'admin') {
+    if ($userData) {
         include_once 'routes/productCategoryRoutes.php';
     }
 });

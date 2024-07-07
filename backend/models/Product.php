@@ -42,7 +42,7 @@ class Product {
     function readById() {
         $query = "SELECT p.*, d.discount_percent,
                          IF(d.discount_percent IS NULL, p.price, p.price * (1 - d.discount_percent / 100)) AS discounted_price,
-                         (SELECT GROUP_CONCAT(REPLACE(pi.image_path, 'C:\\wamp64\\www\\betterthisthannaked\\', '/') SEPARATOR ',')
+                         (SELECT GROUP_CONCAT(pi.image_path SEPARATOR ',')
                           FROM product_images pi
                           WHERE pi.product_id = p.id) AS images
                   FROM " . $this->table_name . " p
@@ -55,9 +55,10 @@ class Product {
         if ($stmt->execute()) {
             return $stmt;
         }
-              
+    
         return null;
     }
+    
     
     
 
