@@ -19,6 +19,7 @@ class OrderItemsController {
     public function create() {
         $this->orderItems->order_id = $_POST['order_id'];
         $this->orderItems->product_id = $_POST['product_id'];
+        $this->orderItems->size_id = $_POST['size_id'];
         $this->orderItems->quantity = $_POST['quantity'];
 
         if($this->orderItems->create()) {
@@ -38,6 +39,7 @@ class OrderItemsController {
         $this->orderItems->id = $_POST['id'];
         $this->orderItems->order_id = $_POST['order_id'];
         $this->orderItems->product_id = $_POST['product_id'];
+        $this->orderItems->size_id = $_POST['size_id'];
         $this->orderItems->quantity = $_POST['quantity'];
 
         if($this->orderItems->update()) {

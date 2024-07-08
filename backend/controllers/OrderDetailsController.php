@@ -14,12 +14,12 @@ class OrderDetailsController {
     }
 
     public function create($data) {
-        if (!isset($data['customer_id']) || !isset($data['status']) || !isset($data['total'])) {
+        if (!isset($data['user_id']) || !isset($data['status']) || !isset($data['total'])) {
             echo json_encode(array("message" => "Missing required data."));
             return;
         }
 
-        $this->orderDetailsModel->customer_id = $data['customer_id'];
+        $this->orderDetailsModel->user_id = $data['user_id'];
         $this->orderDetailsModel->status = $data['status'];
         $this->orderDetailsModel->total = $data['total'];
 
@@ -31,13 +31,13 @@ class OrderDetailsController {
     }
 
     public function update($data) {
-        if (!isset($data['id']) || !isset($data['customer_id']) || !isset($data['status']) || !isset($data['total']) || !isset($data['created_at'])) {
+        if (!isset($data['id']) || !isset($data['user_id']) || !isset($data['status']) || !isset($data['total']) || !isset($data['created_at'])) {
             echo json_encode(array("message" => "Missing required data."));
             return;
         }
 
         $this->orderDetailsModel->id = $data['id'];
-        $this->orderDetailsModel->customer_id = $data['customer_id'];
+        $this->orderDetailsModel->user_id = $data['user_id'];
         $this->orderDetailsModel->status = $data['status'];
         $this->orderDetailsModel->total = $data['total'];
 
